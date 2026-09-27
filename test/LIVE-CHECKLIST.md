@@ -88,9 +88,11 @@ password test accounts, because magic-link email delivery is not set up yet (see
 | Entry added on A appears on B live; deleted on A disappears on B live | pass |
 
 Still open:
-- **Magic-link email delivery is unverified.** A sign-in request for the owner's own address created
-  the user but no email arrived within ~15 minutes on Supabase's built-in sender. Custom SMTP
-  (Resend, verified sender) must be configured and this check repeated before any public sign-in.
+- **Magic-link email delivery: working (2026-09-27).** Custom SMTP through Resend, sending domain
+  `mail.deductbook.com` (verified; DKIM, SPF CNAMEs and DMARC in Cloudflare, DNS-only), sender
+  `no-reply@mail.deductbook.com`. A magic-link request for the owner's Gmail address was delivered
+  within a minute. Clicking through from the live domain is not yet exercised, because the public site
+  is still device-only (no cloud keys deployed).
 - Offline edit → reconnect was not exercised against the real backend (covered by the fake-client
   suite only).
 - The canceled-plan retention check needs the secret key on your own terminal.
