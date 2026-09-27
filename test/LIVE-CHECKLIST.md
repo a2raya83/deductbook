@@ -106,6 +106,9 @@ Still open:
   Site URL `https://deductbook.com/app.html`, redirect list: deductbook.com, www, localhost:8765.
 - Custom SMTP through Resend entered (same sender as the test project); the API key is pasted by the owner.
 - `js/config.js` now ships the production URL and publishable key, so https://deductbook.com offers sign-in.
+- **Live-domain sign-in: pass (2026-09-27).** From https://deductbook.com/app.html: Sign in → email → the
+  confirmation email (Resend, inbox, under a minute) → link opens the app signed in → household created →
+  donation saved ("Saved", entry present after reload). Sign-in emails are delivered by Resend.
 - Test project paused to free the second free-plan slot. Restore it (and rename `js/config.local.test.js`
   to `js/config.local.js`) to re-run the live suite; pause it again afterwards.
 
