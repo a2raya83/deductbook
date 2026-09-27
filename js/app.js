@@ -108,7 +108,7 @@
     currentView = v;
     document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", String(t.dataset.view === v)));
     ["overview", "ledger", "guide", "receipts", "summary", "rules"].forEach(id => { $("view-" + id).hidden = id !== v; });
-    if (v === "ledger") mountForm("formMount", ["cash", "noncash", "stock", "mileage", "expense"]);
+    if (v === "ledger") { mountForm("formMount", ["cash", "noncash", "stock", "mileage", "expense"]); syncFormSlot(); }
     if (v === "overview") renderOverview();
     if (!SAMPLE_MODE && location.hash !== "#" + v) history.replaceState(null, "", "#" + v);   // the sample ledger keeps #sample so a reload stays in it
     window.scrollTo({ top: 0 });
@@ -127,6 +127,12 @@
   /* ---------- entry form ---------- */
   const form = $("entryForm");
   let allowedKinds = ["cash", "noncash", "stock", "mileage", "expense"];
+  // The donation list leads; the form opens through Add donation or Edit. While the ledger is empty it stays open.
+  let formOpen = false;
+  const formForced = () => !state.entries.some(isCountable);
+  function syncFormSlot() { $("ledgerFormSlot").hidden = !(formOpen || formForced()); $("ledgerAdd").hidden = formOpen || formForced(); }
+  function openForm(scroll = true) { formOpen = true; syncFormSlot(); if (scroll) setTimeout(() => $("ledgerFormSlot").scrollIntoView({ behavior: "smooth", block: "start" }), 30); }
+  function closeForm() { formOpen = false; syncFormSlot(); }
   function mountForm(slotId, kinds) {
     allowedKinds = kinds;
     if (form.parentElement !== $(slotId)) $(slotId).appendChild(form);
@@ -216,7 +222,7 @@
     if (e.kind === "stock") { $("f_amount_stock").value = e.amount || ""; $("f_ticker").value = (e.stock || {}).ticker || ""; $("f_costBasis").value = isBlank((e.stock || {}).costBasis) ? "" : e.stock.costBasis; $("f_longTerm").checked = (e.stock || {}).longTerm !== false; }
     if (e.kind === "mileage") { $("f_miles").value = e.miles || ""; $("f_parkingTolls").value = e.parkingTolls || ""; $("f_route").value = e.route || ""; $("f_purpose").value = e.purpose || ""; }
     if (e.kind === "expense") { $("f_amount_expense").value = e.amount || ""; $("f_expenseCategory").value = e.expenseCategory || "other"; $("f_expenseDesc").value = e.expenseDesc || ""; $("f_reimbursed").checked = !!e.reimbursed; $("f_awayOvernight").checked = !!e.awayOvernight; $("f_personalPleasure").checked = !!e.personalPleasure; $("f_companions").checked = !!e.companions; $("f_uniformNoGeneralUse").checked = !!e.uniformNoGeneralUse; $("f_delegate").checked = !!e.delegate; updateExpenseVisibility(); }
-    $("formTitle").textContent = e.conflictOf ? "Edit imported copy (import conflict)" : "Edit donation"; $("cancelEdit").hidden = false; $("saveBtn").textContent = "Save changes";
+    $("formTitle").textContent = e.conflictOf ? "Edit imported copy (import conflict)" : "Edit donation"; $("cancelEdit").hidden = false; $("saveBtn").textContent = "Save changes"; openForm(false);
     if (e.conflictOf) $("saveHint").textContent = "This is the imported copy of a conflict. It stays uncounted until you choose Keep this or Keep mine in the ledger.";
     renderThumbs(); updateInsight();
     form.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -236,17 +242,19 @@
     recalcItems(); renderThumbs(); updateExpenseVisibility(); updateInsight();
   }
   $("resetBtn").addEventListener("click", () => resetForm());
-  $("cancelEdit").addEventListener("click", () => resetForm());
+  $("cancelEdit").addEventListener("click", async () => { await resetForm(); closeForm(); });
+  $("ledgerAdd").addEventListener("click", async () => { if (editingId) await resetForm(); openForm(); $("f_org").focus(); });
   form.addEventListener("input", updateInsight);
   form.addEventListener("change", updateInsight);
 
   function updateInsight() {
     const e = readForm(); const r = evaluate(e, { files: pendingReceiptIds.filter(id => receiptsCache.some(x => x.id === id)).length });
-    const headline = r.status === "stop" ? "Not eligible as entered" : r.status === "docs" ? "Eligible — documentation needed before filing" : "Eligible, records complete";
-    const flags = r.flags.length ? r.flags : [{ level: "info", text: currentKind === "mileage" ? `Log the miles and purpose. ${num(e.miles)} miles × 14¢ = ${money(num(e.miles) * RULES.MILEAGE_RATE)}.` : "Fill in the gift and the checker will list what records you need." }];
+    const blank = !e.org && r.gross === 0 && !num(e.miles) && !(e.items || []).some(it => it.desc);
+    const headline = blank ? "Enter the donation details to see an estimate." : r.status === "stop" ? "Not eligible as entered" : r.status === "docs" ? "Eligible — records needed before filing" : "Eligible, records complete";
+    const flags = blank ? [{ level: "info", text: currentKind === "mileage" ? "Log the miles and the purpose of the trip. The charitable rate is 14¢ per mile." : "As you fill in the gift, the checker lists the records the IRS expects and any reductions that apply." }] : r.flags.length ? r.flags : [{ level: "info", text: "Nothing further needed." }];
     $("insight").innerHTML = `<div class="eyebrow">Deduction check</div>
-      <div class="verdict ${r.status}">${money(r.deductible)}</div>
-      <p class="small" style="margin-bottom:10px">${headline}${r.gross !== r.deductible ? ` · recorded value ${money(r.gross)}` : ""}</p>
+      <div class="verdict ${blank ? "" : r.status}">${blank ? "—" : money(r.deductible)}</div>
+      <p class="small" style="margin-bottom:10px">${headline}${!blank && r.gross !== r.deductible ? ` · recorded value ${money(r.gross)}` : ""}</p>
       <div class="flags">${flags.map(f => `<div class="flag ${f.level}"><span>${f.text}</span></div>`).join("")}</div>`;
   }
 
@@ -322,7 +330,7 @@
     originalReceiptIds = pendingReceiptIds.slice(); stagedRemovals = [];
     await refreshReceipts();
     if (yearOf(e) !== year && year !== "all") year = yearOf(e);
-    persist(); const k = e.kind; await resetForm(); setKind(k); renderAll();
+    persist(); const k = e.kind; await resetForm(); setKind(k); closeForm(); renderAll();
     const r = ev2(e);
     toast(idx >= 0 ? "Entry updated" : r.status === "stop" ? "Saved — not eligible as entered (see status)" : r.status === "docs" ? "Saved — documentation still needed" : "Donation saved");
   });
@@ -376,13 +384,14 @@
     const vis = visibleEntries();
     const s = summarize(vis);
     const cnt = vis.filter(isCountable);
-    const attention = cnt.filter(e => ev(e).status !== "ok").length;
+    const attention = s.needsRecords;
     $("ledgerStats").innerHTML = `
-      <div class="stat hero"><div class="label">Deductible total · ${yearLabel()}</div><div class="value">${money(s.deductible)}</div><div class="sub">${cnt.length} entr${cnt.length === 1 ? "y" : "ies"}${s.conflicts ? ` · ${s.conflicts} conflict${s.conflicts > 1 ? "s" : ""} not counted` : ""} · recorded ${money(s.gross)}${s.needsDocs ? ` · ${money(s.needsDocs)} needs documentation` : ""}${s.notEligible ? ` · ${money(s.notEligible)} not eligible` : ""}</div></div>
+      <div class="stat hero"><div class="label">Estimated deduction before limits · ${yearLabel()}</div><div class="value">${money(s.deductible)}</div><div class="sub">${cnt.length} entr${cnt.length === 1 ? "y" : "ies"}${s.conflicts ? ` · ${s.conflicts} conflict${s.conflicts > 1 ? "s" : ""} not counted` : ""} · recorded ${money(s.gross)}${s.needsDocs ? ` · ${money(s.needsDocs)} still needs records` : ""}${s.notEligible ? ` · ${money(s.notEligible)} not eligible, excluded` : ""}</div></div>
       <div class="stat"><div class="label">Cash gifts</div><div class="value">${money(s.cash)}</div><div class="sub">Schedule A line 11</div></div>
       <div class="stat"><div class="label">Goods &amp; stock</div><div class="value">${money(s.noncash)}</div><div class="sub">${s.noncash > RULES.FORM_8283_THRESHOLD ? "Form 8283 required" : "Schedule A line 12"}</div></div>
       <div class="stat"><div class="label">Volunteer costs</div><div class="value">${money(s.volunteer)}</div><div class="sub">Mileage + expenses</div></div>
-      <div class="stat ${attention ? "attention" : ""}"><div class="label">Need attention</div><div class="value">${attention}</div><div class="sub">${s.needsAck ? s.needsAck + " missing acknowledgment" : attention ? "See status column" : "All records complete"}</div></div>`;
+      <div class="stat ${attention ? "attention" : ""}"><div class="label">Records needed</div><div class="value">${attention}</div><div class="sub">${attention ? (s.needsAck ? s.needsAck + " acknowledgment" + (s.needsAck > 1 ? "s" : "") + (attention > s.needsAck ? ", " + (attention - s.needsAck) + " other" : "") : "See the status column") : "All required records on file"}${s.notEligibleCount ? ` · ${s.notEligibleCount} not eligible` : ""}</div></div>`;
+    syncFormSlot();
     const conflicts = state.entries.filter(e => e.conflictOf);
     $("conflictBanner").hidden = !conflicts.length;
     if (conflicts.length) $("conflictBanner").innerHTML = `<b>${conflicts.length} imported entr${conflicts.length === 1 ? "y differs" : "ies differ"} from your version.</b><span>Both copies were kept. The imported copy (marked “Import conflict”) is not counted in totals, forms or exports until you choose Keep this or Keep mine.</span>`;
@@ -427,13 +436,15 @@
     const conflicts = vis.filter(e => !isCountable(e)).length;
     $("overviewAttention").innerHTML = `<div class="card-head" style="margin-bottom:10px"><div><h3>Needs attention</h3><p>${attention.length || conflicts ? "Fix these before you file." : cnt.length ? "No documentation issues flagged." : "Issues with records will show up here."}</p></div></div>
       <div class="attention-list">${conflicts ? `<div class="attention-item"><div class="what"><b>${conflicts} import conflict${conflicts > 1 ? "s" : ""}</b><span>Both versions kept; choose one in Donations</span></div><button class="btn sm" type="button" data-go="ledger">Review</button></div>` : ""}
-      ${attention.slice(0, 5).map(({ e, r }) => `<div class="attention-item"><div class="what"><b>${esc(e.org || describe(e))} · ${money(r.status === "stop" ? r.gross : r.deductible)}</b><span>${r.status === "stop" ? "Not eligible: " + esc((r.flags.find(f => f.level === "stop") || {}).text || "").split(".")[0].toLowerCase() : docsLabel(r)}</span></div><button class="btn sm" type="button" data-edit="${esc(e.id)}">${r.status === "stop" ? "Review" : "Add record"}</button></div>`).join("")}
+      ${attention.slice(0, 5).map(({ e, r }) => `<div class="attention-item"><div class="what"><b>${esc(e.org || describe(e))} · ${money(r.status === "stop" ? r.gross : r.deductible)}</b><span>${r.status === "stop" ? "Not eligible, excluded from the estimate: " + esc((r.flags.find(f => f.level === "stop") || {}).text || "").split(".")[0].toLowerCase() : docsLabel(r)}</span></div><button class="btn sm" type="button" data-edit="${esc(e.id)}">${r.status === "stop" ? "Review" : "Add record"}</button></div>`).join("")}
       ${attention.length > 5 ? `<p class="small muted">and ${attention.length - 5} more in Donations</p>` : ""}
       ${!attention.length && !conflicts ? `<div class="flag ${cnt.length ? "ok" : "info"}"><span>${cnt.length ? `No documentation issues flagged for ${yearLabel()}.` : "Each donation is checked against the IRS record-keeping rules as you add it."}</span></div>` : ""}</div>`;
     // next steps: what to do now
     const steps = [];
     if (!cnt.length) steps.push(["Record your first donation", "Money, goods, stock or a volunteer cost. Takes a minute.", "ledger"]);
-    if (attention.length) steps.push([`Resolve ${attention.length} item${attention.length > 1 ? "s" : ""} needing records`, "Acknowledgment letters and receipts, while the charity can still send them.", "ledger"]);
+    const needRec = attention.filter(x => x.r.status === "docs").length, notElig = attention.length - needRec;
+    if (needRec) steps.push([`Get the missing records for ${needRec} donation${needRec > 1 ? "s" : ""}`, "Acknowledgment letters and receipts, while the charity can still send them.", "ledger"]);
+    if (notElig) steps.push([`Review ${notElig} donation${notElig > 1 ? "s" : ""} not eligible as entered`, "Excluded from the estimate. Edit the entry if the details are wrong.", "ledger"]);
     if (Cloud.configured && !user && !SAMPLE_MODE) steps.push(["Sign in to keep records across devices", "And share the ledger with your household.", "signin"]);
     if (cnt.length && !attention.length) steps.push(["Attach receipts you haven't yet", "Photos travel with the backup and the household ledger.", "receipts"]);
     steps.push(["Export the tax summary for your preparer", "Totals, filing checklist and a CSV of every donation.", "summary"]);
@@ -442,7 +453,7 @@
     const recent = [...cnt].sort((a, b) => (b.date || "").localeCompare(a.date || "") || (b.createdAt || "").localeCompare(a.createdAt || "")).slice(0, 5);
     $("overviewRecent").innerHTML = `<div class="card-head" style="margin-bottom:6px"><div><h3>Recent donations</h3></div><button class="btn sm link" type="button" data-go="ledger">All donations</button></div>
       <div class="recent">${recent.length ? recent.map(e => { const recs = receiptsFor(e); const img = recs.find(r => r.type.startsWith("image/")); const r = ev(e); return `<div class="recent-item"><div class="thumb-sm">${img ? `<img src="${urlFor(img)}" alt="">` : recs.length ? "PDF" : "—"}</div><div class="who"><b>${esc(e.org || describe(e))}</b><span>${fmtDate(e.date)} · ${esc(describe(e)).slice(0, 60)}${recs.length ? " · receipt attached" : ""}</span></div><div class="amt">${money(r.deductible)}</div></div>`; }).join("") : `<p class="small muted">No donations recorded for ${yearLabel()} yet.</p>`}</div>`;
-    $("view-overview").querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => { if (b.dataset.go === "signin") { accountModal(); return; } showView(b.dataset.go); if (b.dataset.go === "ledger" && b.textContent.trim() === "Add donation") form.scrollIntoView({ behavior: "smooth", block: "start" }); }));
+    $("view-overview").querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => { if (b.dataset.go === "signin") { accountModal(); return; } showView(b.dataset.go); if (b.dataset.go === "ledger" && b.textContent.trim() === "Add donation") openForm(); }));
     $("view-overview").querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => { const e = state.entries.find(x => x.id === b.dataset.edit); if (e) { showView("ledger"); fillForm(e); } }));
   }
   /* ---------- value guide ---------- */
@@ -460,7 +471,7 @@
       if (blank) last.remove();
       addItemRow({ desc: name, category: g.cat, condition: "good", qty: 1, unitValue: valueForCondition("good", lo, hi).toFixed(2), lo, hi });
       recalcItems(); updateInsight(); $("f_howValued").value = window.FMV_METHODS[0];
-      form.scrollIntoView({ behavior: "smooth", block: "start" }); toast(`Added “${name}” at the good-condition value — change the condition to adjust`);
+      openForm(); toast(`Added “${name}” at the good-condition value — change the condition to adjust`);
     }));
   }
   $("guideSearch").addEventListener("input", renderGuide); $("guideCat").addEventListener("change", renderGuide);
@@ -468,10 +479,16 @@
   /* ---------- receipts view ---------- */
   function renderReceipts() {
     const vis = visibleEntries();
-    const missing = vis.filter(e => isCountable(e) && !receiptsFor(e).length && ev(e).deductible > 0 && e.kind !== "mileage" && !(e.kind === "cash" && e.bankRecord && ev(e).gross < RULES.ACK_THRESHOLD));
-    $("missingReceipts").innerHTML = missing.length ? `<div class="card-head"><div><h3>${missing.length} entr${missing.length === 1 ? "y" : "ies"} without a receipt</h3><p>Attach a photo of the receipt or the charity's letter so the record is complete.</p></div></div>
-      <div class="flags">${missing.map(e => `<div class="flag warn"><span><b>${fmtDate(e.date)}</b> · ${esc(e.org || describe(e))} · ${money(ev(e).deductible)}</span><button class="btn sm" type="button" data-edit="${esc(e.id)}" style="margin-left:auto">Attach</button></div>`).join("")}</div>`
-      : `<div class="flag ok"><span>Every deductible entry for ${yearLabel()} has a receipt, bank record or acknowledgment.</span></div>`;
+    // Required records missing (the rules demand a receipt, bank record or acknowledgment) are a to-do.
+    // Entries whose records exist on paper but have no photo attached are an optional tidy-up, not a warning.
+    const noFile = vis.filter(e => isCountable(e) && !receiptsFor(e).length && ev(e).deductible > 0 && e.kind !== "mileage");
+    const required = noFile.filter(e => ev(e).status === "docs");
+    const optional = noFile.filter(e => ev(e).status === "ok" && !(e.kind === "cash" && e.bankRecord));
+    const row = (e, cls, action) => `<div class="flag ${cls}"><span><b>${fmtDate(e.date)}</b> · ${esc(e.org || describe(e))} · ${money(ev(e).deductible)}${cls === "warn" ? " · " + esc(docsLabel(ev(e))) : ""}</span><button class="btn sm" type="button" data-edit="${esc(e.id)}" style="margin-left:auto">${action}</button></div>`;
+    $("missingReceipts").innerHTML = (required.length ? `<div class="card-head"><div><h3>${required.length} donation${required.length === 1 ? "" : "s"} missing a required record</h3><p>The IRS expects a receipt, bank record or written acknowledgment for these. Get it from the charity, then tick the box or attach it.</p></div></div>
+      <div class="flags">${required.map(e => row(e, "warn", "Add record")).join("")}</div>` : `<div class="flag ok"><span>Every donation for ${yearLabel()} has the records the rules require.</span></div>`)
+      + (optional.length ? `<div class="card-head" style="margin-top:14px"><div><h3>${optional.length} without a digital attachment</h3><p>Records declared on paper. Optional: attach a photo so it travels with the backup and the household ledger.</p></div></div>
+      <div class="flags">${optional.map(e => row(e, "info", "Attach")).join("")}</div>` : "");
     $("missingReceipts").querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => { const e = state.entries.find(x => x.id === b.dataset.edit); showView("ledger"); fillForm(e); }));
     const total = receiptsCache.reduce((t, r) => t + (r.size || 0), 0);
     $("receiptStorage").textContent = receiptsCache.length ? `${receiptsCache.length} file${receiptsCache.length === 1 ? "" : "s"}, ${(total / 1024 / 1024).toFixed(1)} MB stored in this browser.` : "No files yet.";
@@ -510,10 +527,10 @@
     const vis = visibleEntries(); const s = summarize(vis);
     $("summaryTitle").textContent = `Tax summary · ${yearLabel()}`;
     $("summaryStats").innerHTML = `
-      <div class="stat hero"><div class="label">Total charitable deduction</div><div class="value">${money(s.deductible)}</div><div class="sub">Before AGI limits and the 0.5% floor${s.needsDocs ? ` · includes ${money(s.needsDocs)} still needing documentation` : ""}${s.notEligible ? ` · ${money(s.notEligible)} recorded but not eligible` : ""}</div></div>
+      <div class="stat hero"><div class="label">Estimated deduction before limits</div><div class="value">${money(s.deductible)}</div><div class="sub">Before AGI limits and the 0.5% floor · recorded ${money(s.gross)}${s.needsDocs ? ` · includes ${money(s.needsDocs)} still needing records` : ""}${s.notEligible ? ` · ${money(s.notEligible)} not eligible, excluded` : ""}</div></div>
       <div class="stat"><div class="label">Cash + volunteer costs</div><div class="value">${money(s.cash + s.volunteer)}</div><div class="sub">Schedule A, line 11</div></div>
       <div class="stat"><div class="label">Goods + stock</div><div class="value">${money(s.noncash)}</div><div class="sub">Schedule A, line 12</div></div>
-      <div class="stat ${s.needsAck || s.missingReceipts ? "attention" : ""}"><div class="label">Open items</div><div class="value">${s.needsAck + s.missingReceipts}</div><div class="sub">${s.needsAck} acknowledgments · ${s.missingReceipts} receipts</div></div>`;
+      <div class="stat ${s.needsRecords ? "attention" : ""}"><div class="label">Records needed</div><div class="value">${s.needsRecords}</div><div class="sub">${s.needsAck} acknowledgment${s.needsAck === 1 ? "" : "s"}${s.needsRecords > s.needsAck ? `, ${s.needsRecords - s.needsAck} other` : ""}${s.notEligibleCount ? ` · ${s.notEligibleCount} not eligible` : ""}${s.missingReceipts ? ` · ${s.missingReceipts} without attachment (optional)` : ""}</div></div>`;
     const kv = (obj) => { const keys = Object.keys(obj).sort((a, b) => obj[b] - obj[a]); return keys.length ? `<dl class="kv">${keys.map(k => `<dt>${esc(k)}</dt><dd class="num">${money(obj[k])}</dd>`).join("")}</dl>` : `<p class="small muted">Nothing logged yet.</p>`; };
     const order = ["cash", "noncash", "stock", "mileage", "expense"];
     const checklistCard = (title, sum) => `<div class="card"><h3>${title}</h3><div class="checklist" style="margin-top:10px">${sum.checklist.map(c => `<div class="item"><span class="mk ${c.state}">${c.state === "need" ? "!" : c.state === "done" ? "✓" : "–"}</span><span>${c.text}</span></div>`).join("")}</div></div>`;
@@ -554,7 +571,7 @@
     const years = year === "all" ? [...new Set(vis.map(yearOf).filter(Boolean))].sort().reverse() : [year];
     const checks = years.flatMap(y => { const sy = year === "all" ? summarize(vis.filter(e => yearOf(e) === y)) : s; return [`Filing checklist ${y}:`, ...sy.checklist.map(c => `  [${c.state === "need" ? "!" : c.state === "done" ? "x" : "-"}] ${c.text}`), ""]; });
     return [`DEDUCTBOOK — TAX SUMMARY ${year === "all" ? "(all years)" : year}`, "",
-      `Total charitable deduction: ${money(s.deductible)}`, ...order.map(k => `  ${KINDS[k].label}: ${money(s.byKind[k])}`), s.needsDocs ? `  Of which still needing documentation: ${money(s.needsDocs)}` : "", s.notEligible ? `  Recorded but not eligible: ${money(s.notEligible)}` : "", "",
+      `Estimated deduction before limits: ${money(s.deductible)} (recorded value ${money(s.gross)})`, ...order.map(k => `  ${KINDS[k].label}: ${money(s.byKind[k])}`), s.needsDocs ? `  Of which still needing records: ${money(s.needsDocs)}` : "", s.notEligible ? `  Recorded but not eligible: ${money(s.notEligible)}` : "", "",
       "By donor:", ...Object.entries(s.byDonor).map(([k, v]) => `  ${k}: ${money(v)}`), "",
       "By organization:", ...Object.entries(s.byOrg).map(([k, v]) => `  ${k}: ${money(v)}`), "",
       ...checks,
@@ -645,6 +662,37 @@
     const before = state.entries; state.entries = before.concat(samples); state.settings.samples = true;
     if (!persist()) { state.entries = before; return; }
     renderYearPicker(); renderAll(); if (currentView !== "overview") showView("ledger"); toast("Sample entries loaded");
+    if (SAMPLE_MODE) attachSampleReceipts(samples).catch(() => {});
+  }
+  // Clearly fictional attachments so the sample shows receipts the way a real ledger would.
+  function sampleReceiptImage(kind, lines) {
+    const c = document.createElement("canvas"); c.width = 900; c.height = 1100; const g = c.getContext("2d");
+    g.fillStyle = "#fbf9f3"; g.fillRect(0, 0, c.width, c.height);
+    g.strokeStyle = "#d5cbb4"; g.lineWidth = 3; g.strokeRect(40, 40, c.width - 80, c.height - 80);
+    g.fillStyle = "#182b36"; g.font = "600 40px Georgia, serif"; g.fillText(lines[0], 90, 130);
+    g.font = "24px Inter, Arial, sans-serif"; g.fillStyle = "#58656c";
+    lines.slice(1).forEach((t, i) => { if (t === "") return; g.fillStyle = t.startsWith("#") ? "#182b36" : "#58656c"; g.font = (t.startsWith("#") ? "600 " : "") + "26px Inter, Arial, sans-serif"; g.fillText(t.replace(/^#/, ""), 90, 200 + i * 44); });
+    g.save(); g.translate(c.width / 2, c.height / 2); g.rotate(-Math.PI / 5); g.font = "700 150px Inter, Arial, sans-serif"; g.fillStyle = "rgba(23,107,96,0.13)"; g.textAlign = "center"; g.fillText("SAMPLE", 0, 50); g.restore();
+    g.fillStyle = "#9a9384"; g.font = "20px Inter, Arial, sans-serif"; g.fillText("Fictional " + kind + " generated for the DeductBook sample ledger. Not a real document.", 90, c.height - 80);
+    return new Promise(res => c.toBlob(res, "image/png"));
+  }
+  async function attachSampleReceipts(samples) {
+    const y = (samples[0].date || "").slice(0, 4);
+    const docs = [
+      [e => e.kind === "cash" && e.org === "Greater Lakes Food Bank", "acknowledgment letter", "food-bank-acknowledgment.png", ["Greater Lakes Food Bank", "1200 Harbor Street · Lakeshore", "", "#Thank you for your gift", "", `Date: January 14, ${y}`, "Donor: The Sample household", "Amount received: $500.00", "", "No goods or services were provided", "in exchange for this contribution.", "", "Greater Lakes Food Bank is a 501(c)(3)", "organization. Keep this letter for your records."]],
+      [e => e.kind === "noncash", "drop-off receipt", "goodwill-dropoff-receipt.png", ["Goodwill Industries", "Donation Center · Receipt", "", `Date: April 18, ${y}`, "Location: Lakeshore Donation Center", "", "#Items received", "2 bags clothing (suits, coats)", "1 box books", "", "Value is determined by the donor.", "Thank you for donating."]],
+      [e => e.kind === "stock", "broker confirmation", "broker-transfer-confirmation.png", ["Sample Brokerage", "Transfer confirmation", "", `Date: June 3, ${y}`, "From: Sample household account ····4412", "To: Lakeshore Land Trust", "", "#20 shares VTI", "Delivered in kind (DTC transfer)", "Average of high and low on transfer date: $210.00", "Total: $4,200.00", "", "This confirms the securities left your account."]]
+    ];
+    let changed = false;
+    for (const [match, kind, name, lines] of docs) {
+      const e = state.entries.find(x => x.sample && match(x)); if (!e || (e.receiptIds || []).length) continue;
+      try {
+        const blob = await sampleReceiptImage(kind, lines);
+        const rec = await Files().addReceipt(new File([blob], name, { type: "image/png" }), e.id);
+        e.receiptIds = [...(e.receiptIds || []), rec.id]; changed = true;
+      } catch (err) { /* attachments are a nicety; the sample works without them */ }
+    }
+    if (changed) { persist(); await refreshReceipts(); renderAll(); }
   }
   $("clearSamples").addEventListener("click", () => { const before = state.entries; state.entries = before.filter(e => !e.sample); state.settings.samples = false; if (!persist()) { state.entries = before; return; } renderYearPicker(); renderAll(); toast("Sample entries removed"); });
 
@@ -652,7 +700,7 @@
   function renderAll() {
     freeUrls();
     $("sampleBanner").hidden = !(SAMPLE_MODE || state.entries.some(e => e.sample));
-    if (SAMPLE_MODE) $("sampleBanner").innerHTML = `<b>Sample ledger.</b><span>Explore freely: nothing here touches your own records. Try adding a donation, opening the tax summary, or editing an entry.</span><div><a class="btn sm primary" href="app.html" id="exitSample">Start your own record</a></div>`;
+    if (SAMPLE_MODE) $("sampleBanner").innerHTML = `<b>Sample ledger</b><span>Fictional records, kept apart from your own. Change anything.</span><div><a class="btn sm primary" href="app.html" id="exitSample">Start your own record</a></div>`;
     renderLedger(); renderGuide(); renderReceipts(); renderSummary(); if (currentView === "overview") renderOverview();
     if (form.parentElement && form.parentElement.id) renderThumbs();
   }
@@ -812,11 +860,12 @@
     $("f_date").value = new Date().toISOString().slice(0, 10);
     setKind("cash"); updateExpenseVisibility();
     const wantSample = location.hash === "#sample";
-    $("mbAdd").addEventListener("click", () => { showView("ledger"); setTimeout(() => form.scrollIntoView({ behavior: "smooth", block: "start" }), 50); });
+    $("mbAdd").addEventListener("click", async () => { showView("ledger"); if (editingId) await resetForm(); openForm(); });
     $("mbPhoto").addEventListener("click", () => $("mobileCapture").click());
-    $("mobileCapture").addEventListener("change", ev => { const files = [...ev.target.files]; ev.target.value = ""; if (!files.length) return; showView("ledger"); handleFiles(files); form.scrollIntoView({ behavior: "smooth", block: "start" }); });
+    $("mobileCapture").addEventListener("change", ev => { const files = [...ev.target.files]; ev.target.value = ""; if (!files.length) return; showView("ledger"); openForm(); handleFiles(files); });
     // Read an invitation token BEFORE the view router rewrites the hash.
     const im = location.hash.match(/invite=([a-f0-9]+)/); if (im) { try { sessionStorage.setItem("gl_invite", im[1]); } catch (e) {} }
+    const wantSignIn = location.hash === "#signin";
     const v = location.hash.slice(1);
     showView($("view-" + v) ? v : "overview");
     if (SAMPLE_MODE) history.replaceState(null, "", "#sample");
@@ -830,7 +879,7 @@
     if (!window.Store.saveState(state)) toast("Heads up: this browser is blocking storage, so nothing you enter will be kept.", true);
     if (Cloud.configured) {
       try {
-        await Cloud.init({
+        const signedIn = await Cloud.init({
           onAuth: user => { if (user) afterSignIn(user); else if (cloudMode) leaveCloud(); else renderAccountBar(); },
           onStatus: (s, msg) => setSaveStatus(s, msg),
           onRemoteChange: entries => {
@@ -855,6 +904,7 @@
             persist();
           }
         });
+        if (wantSignIn && !signedIn) accountModal();
         if (im && !Cloud.user()) accountModal();
       } catch (e) { toast("Cloud sign-in is unavailable right now; working in device-only mode.", true); }
     }

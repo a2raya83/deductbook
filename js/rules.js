@@ -201,16 +201,22 @@
     const filesFor = opts.filesFor || (e => (e.receiptIds || []).length);
     const byKind = {}; Object.keys(KINDS).forEach(k => byKind[k] = 0);
     let gross = 0, deductible = 0, notEligible = 0, needsDocs = 0, needsAck = 0, missingFiles = 0, noncashTotal = 0, vehicle = 0;
+    // Three distinct states, kept apart everywhere they are shown:
+    //   needsRecords    required records missing (a receipt, bank record or acknowledgment the rules demand)
+    //   notEligibleCount excluded from the estimate; no record can fix it
+    //   missingFiles    a record exists (or isn't required) but no photo/PDF is attached: optional
+    let needsRecords = 0, notEligibleCount = 0;
     const byDonor = {}, byOrg = {};
     const conflicts = entries.filter(e => !isCountable(e)).length;
     entries.filter(isCountable).forEach(e => {
       const r = evaluate(e, { files: filesFor(e) });
       byKind[e.kind] = (byKind[e.kind] || 0) + r.deductible;
       gross += r.gross; deductible += r.deductible;
-      if (r.status === "stop") notEligible += r.eligible;
-      if (r.status === "docs") needsDocs += r.deductible;
+      if (r.status === "stop") { notEligible += r.eligible; notEligibleCount++; }
+      if (r.status === "docs") { needsDocs += r.deductible; needsRecords++; }
       if (r.flags.some(f => f.level === "docs" && /\$250/.test(f.text))) needsAck++;
-      if (!filesFor(e) && e.kind !== "mileage" && r.deductible > 0 && !(e.kind === "cash" && e.bankRecord)) missingFiles++;
+      // Optional attachments: only entries whose required records are already in order (a bank record covers cash).
+      if (!filesFor(e) && e.kind !== "mileage" && r.status === "ok" && r.deductible > 0 && !(e.kind === "cash" && e.bankRecord)) missingFiles++;
       if (e.kind === "noncash") { noncashTotal += r.deductible; if (e.vehicle) vehicle++; }
       if (e.kind === "stock") noncashTotal += r.deductible;
       const d = e.donor || "Unassigned"; byDonor[d] = (byDonor[d] || 0) + r.deductible;
@@ -229,9 +235,9 @@
       ...(uncategorized > 0 ? [{ key: "uncat", state: "need", text: `${money(uncategorized)} of goods have no category, so they can't be checked against the $5,000 similar-items test. Give each item a category.` }] : []),
       ...(conflicts > 0 ? [{ key: "conflicts", state: "need", text: `${conflicts} import conflict${conflicts > 1 ? "s" : ""} unresolved. The imported copies are not counted anywhere until you choose which version to keep.` }] : []),
       { key: "1098c", state: vehicle ? "need" : "na", text: vehicle ? "Form 1098-C from the charity for each donated vehicle, boat or plane — attach to the return." : "No vehicle donations." },
-      { key: "files", state: missingFiles ? "need" : "done", text: missingFiles ? `${missingFiles} entr${missingFiles > 1 ? "ies" : "y"} without a receipt photo or PDF attached (paper copies are fine, but attachments travel with the backup).` : "Every entry has a receipt, bank record or acknowledgment attached." }
+      { key: "files", state: missingFiles ? "opt" : "done", text: missingFiles ? `Optional: ${missingFiles} entr${missingFiles > 1 ? "ies have" : "y has"} no photo or PDF attached. Paper records are fine; attachments travel with the backup and the household ledger.` : "Every entry has a receipt, bank record or acknowledgment attached." }
     ];
-    return { byKind, byDonor, byOrg, gross, deductible, notEligible, needsDocs, blocked: notEligible, cash, noncash: noncashTotal, volunteer, needsAck, missingReceipts: missingFiles, appraisalGroups, groups, conflicts, checklist };
+    return { byKind, byDonor, byOrg, gross, deductible, notEligible, notEligibleCount, needsDocs, needsRecords, blocked: notEligible, cash, noncash: noncashTotal, volunteer, needsAck, missingReceipts: missingFiles, appraisalGroups, groups, conflicts, checklist };
   }
 
   window.RULES = RULES;

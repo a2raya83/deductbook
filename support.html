@@ -18,10 +18,11 @@
 
     <h2>Contact</h2>
     <p id="supportContact">During the beta, the fastest way to reach us is to <a href="https://github.com/a2raya83/deductbook/issues" target="_blank" rel="noopener">open an issue on GitHub</a>. We answer within a couple of days.</p>
+    <p class="small">GitHub issues are public. Never post receipts, account details or anything about your finances there; describe the problem in general terms.</p>
     <script src="js/config.js"></script><script src="js/config.local.js"></script>
     <script>
       // Once a support address exists (set in js/config.js as contactEmail), show it instead of the issue tracker.
-      (function () { var e = window.SITE_CONFIG && window.SITE_CONFIG.contactEmail; if (e) document.getElementById("supportContact").innerHTML = "Email <b>" + e.replace(/[<>&]/g, "") + "</b>. During the beta we answer within a couple of days."; })();
+      (function () { var e = window.SITE_CONFIG && window.SITE_CONFIG.contactEmail; if (e) { var safe = e.replace(/[<>&"]/g, ""); document.getElementById("supportContact").innerHTML = "Email <a href=\"mailto:" + safe + "\">" + safe + "</a>. Messages go to a private mailbox, and during the beta we answer within a couple of days. Technical bug reports can also go to the <a href=\"https://github.com/a2raya83/deductbook/issues\" target=\"_blank\" rel=\"noopener\">public issue tracker on GitHub</a>."; } })();
     </script>
 
     <h2>Before you write</h2>
@@ -33,7 +34,7 @@
     </ul>
 
     <h2>Deleting a household account</h2>
-    <p>Email from the address you sign in with and say which household to delete. We remove its entries and receipt files and confirm by reply.</p>
+    <p>Write to the contact above from the address you sign in with and say which household to delete. We remove its entries and receipt files and confirm by reply.</p>
 
     <p><a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a></p>
   </article>

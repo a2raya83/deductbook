@@ -321,7 +321,10 @@ td .sub { font-size: 0.8rem; color: var(--muted); }
 .checklist { display: grid; gap: 8px; }
 .checklist .item { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; font-size: 0.9rem; }
 .checklist .item .mk { width: 18px; height: 18px; border-radius: 5px; display: grid; place-items: center; font-size: 0.7rem; font-weight: 700; margin-top: 2px; }
-.mk.need { background: var(--warn-soft); color: var(--warn); } .mk.done { background: var(--ok-soft); color: var(--ok); } .mk.na { background: var(--surface-2); color: var(--muted); }
+.mk.need { background: var(--warn-soft); color: var(--warn); } .mk.done { background: var(--ok-soft); color: var(--ok); } .mk.na, .mk.opt { background: var(--surface-2); color: var(--muted); }
+.guide-help summary { cursor: pointer; font-weight: 600; }
+.guide-help { margin-top: 14px; }
+.verdict:not(.ok):not(.docs):not(.stop) { color: var(--muted); }
 
 /* Modal & toast */
 .modal-back { position: fixed; inset: 0; background: rgba(24,43,54,0.5); display: grid; place-items: center; z-index: 50; padding: 16px; }
