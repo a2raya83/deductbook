@@ -4,3 +4,4 @@ Thumbs.db
 *.zip
 js/config.local.js
 test/.ui-users.json
+js/config.local.test.js

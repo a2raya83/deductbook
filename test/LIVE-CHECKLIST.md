@@ -100,6 +100,15 @@ Still open:
   redirect list now includes `https://deductbook.com/**` and `https://www.deductbook.com/**`.
   Sign-in from the live domain is untested until email delivery works.
 
+## 2b. Production cutover (2026-09-27)
+
+- Production project created (`deductbook`, us-east-2), schema applied without errors, Confirm-email ON,
+  Site URL `https://deductbook.com/app.html`, redirect list: deductbook.com, www, localhost:8765.
+- Custom SMTP through Resend entered (same sender as the test project); the API key is pasted by the owner.
+- `js/config.js` now ships the production URL and publishable key, so https://deductbook.com offers sign-in.
+- Test project paused to free the second free-plan slot. Restore it (and rename `js/config.local.test.js`
+  to `js/config.local.js`) to re-run the live suite; pause it again afterwards.
+
 ## 3. Then
 
 Send the reviewer the results of sections 1 and 2. If everything passes, flip the sign-up gate

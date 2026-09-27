@@ -6,8 +6,8 @@ window.SITE_CONFIG = {
   // Cloud mode: accounts, household ledgers, private receipt storage, live sync.
   // Leave both empty to run in device-only mode. See README → "Accounts and household ledgers".
   cloud: {
-    url: "",       // e.g. "https://abcdefghijklmnop.supabase.co"
-    anonKey: ""    // the project's PUBLISHABLE key (or legacy anon key). Both are client-side keys meant to ship
+    url: "https://wmrzuqamnnsurubalfqb.supabase.co",           // production project (deductbook)
+    anonKey: "sb_publishable_vOyIiNtXwIy4WlPldYu4Jw_VGe76Zz0"   // the project's PUBLISHABLE key (or legacy anon key). Both are client-side keys meant to ship
                    // in the page; row-level security does the protecting. NEVER put a secret / service_role key here.
   },
 

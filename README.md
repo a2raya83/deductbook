@@ -58,7 +58,12 @@ Drag the folder onto the Netlify dashboard, or connect the repo. No build comman
 
 Add a custom domain from either dashboard when you're ready.
 
-## Accounts and household ledgers (cloud mode)
+## Accounts and household ledgers
+
+Production project: `deductbook` (ref wmrzuqamnnsurubalfqb), configured in `js/config.js`. The separate test
+project `giving-ledger-test` stays paused between test runs (free plan allows two active projects); rename
+`js/config.local.test.js` to `js/config.local.js` to point a local checkout at it.
+ (cloud mode)
 
 Without cloud settings the app runs in device-only mode. Add a free [Supabase](https://supabase.com)
 project and it gains sign-in, household ledgers shared between people, private receipt storage,
