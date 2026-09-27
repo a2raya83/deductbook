@@ -700,7 +700,13 @@
   function renderAll() {
     freeUrls();
     $("sampleBanner").hidden = !(SAMPLE_MODE || state.entries.some(e => e.sample));
-    if (SAMPLE_MODE) $("sampleBanner").innerHTML = `<b>Sample ledger</b><span>Fictional records, kept apart from your own. Change anything.</span><div><a class="btn sm primary" href="app.html" id="exitSample">Start your own record</a></div>`;
+    if (SAMPLE_MODE) $("sampleBanner").innerHTML = `<b>Sample ledger</b><span>Fictional records, kept apart from your own. Change anything.</span><div><button class="btn sm" type="button" id="resetSample">Reset demo</button><a class="btn sm primary" href="app.html" id="exitSample">Start your own record</a></div>`;
+    const rs = $("resetSample"); if (rs) rs.addEventListener("click", async () => {
+      if (!rs.dataset.confirm) { rs.dataset.confirm = "1"; rs.textContent = "Confirm reset"; setTimeout(() => { delete rs.dataset.confirm; rs.textContent = "Reset demo"; }, 3500); return; }
+      state.entries = []; state.settings.samples = false; persist();
+      try { await window.Store.clearReceipts(); } catch (e) {}
+      await refreshReceipts(); loadSamples(); showView("overview"); toast("Demo reset");
+    });
     renderLedger(); renderGuide(); renderReceipts(); renderSummary(); if (currentView === "overview") renderOverview();
     if (form.parentElement && form.parentElement.id) renderThumbs();
   }
@@ -875,6 +881,8 @@
     if (orphans) toast(`Removed ${orphans} receipt file${orphans > 1 ? "s" : ""} left over from an interrupted restore.`, true);
     renderYearPicker(); renderAll(); renderAccountBar();
     if (SAMPLE_MODE && !state.entries.length) { loadSamples(); showView("overview"); }
+    // A demo opened before sample attachments existed gets them on the next visit.
+    else if (SAMPLE_MODE && state.entries.some(e => e.sample) && !state.entries.some(e => e.sample && (e.receiptIds || []).length)) attachSampleReceipts(state.entries.filter(e => e.sample)).catch(() => {});
     if (SAMPLE_MODE) { $("cloudHint").hidden = true; document.title = "DeductBook · sample ledger"; }
     if (!window.Store.saveState(state)) toast("Heads up: this browser is blocking storage, so nothing you enter will be kept.", true);
     if (Cloud.configured) {
