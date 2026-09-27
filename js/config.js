@@ -1,5 +1,8 @@
 // Site configuration.
 window.SITE_CONFIG = {
+  // Support address shown on the Support page. Leave empty until the mailbox exists (the page falls back to the issue tracker).
+  contactEmail: "",
+
   // Cloud mode: accounts, household ledgers, private receipt storage, live sync.
   // Leave both empty to run in device-only mode. See README → "Accounts and household ledgers".
   cloud: {

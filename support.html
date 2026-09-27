@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>DeductBook support</title>
+<meta name="description" content="Get help with DeductBook.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap">
+<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/landing.css">
+</head>
+<body>
+<header class="appbar land-header"><div class="appbar-inner"><a class="logo" href="./"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v16H6.5A1.5 1.5 0 0 0 5 20.5z"/><path d="M5 20.5V4.5"/><path d="M14 3v8l-2.2-1.5L9.6 11V3"/></svg><span class="name">Deduct<b>Book</b></span></a><div class="spacer"></div><a class="btn sm" href="app.html">Open DeductBook</a></div></header>
+<main class="land legal">
+  <article>
+    <h1 class="serif">Support</h1>
+    <p>DeductBook is in beta. Questions, problems and requests are welcome.</p>
+
+    <h2>Contact</h2>
+    <p id="supportContact">During the beta, the fastest way to reach us is to <a href="https://github.com/a2raya83/giving-ledger/issues" target="_blank" rel="noopener">open an issue on GitHub</a>. We answer within a couple of days.</p>
+    <script src="js/config.js"></script><script src="js/config.local.js"></script>
+    <script>
+      // Once a support address exists (set in js/config.js as contactEmail), show it instead of the issue tracker.
+      (function () { var e = window.SITE_CONFIG && window.SITE_CONFIG.contactEmail; if (e) document.getElementById("supportContact").innerHTML = "Email <b>" + e.replace(/[<>&]/g, "") + "</b>. During the beta we answer within a couple of days."; })();
+    </script>
+
+    <h2>Before you write</h2>
+    <ul>
+      <li><b>Lost records on a device?</b> Device-only data lives in that browser. If you have a backup file, use Backup &amp; data to restore it. If not, we can't recover it.</li>
+      <li><b>Sign-in link didn't arrive?</b> Check spam, then request another. Links expire after a short time.</li>
+      <li><b>Invitation link says it was sent to a different address?</b> Sign in with the exact email that was invited, or ask the household owner to send a new invitation to the address you use.</li>
+      <li><b>Something looks wrong in a total?</b> Open the entry: the deduction check on the right explains every reduction and every missing record.</li>
+    </ul>
+
+    <h2>Deleting a household account</h2>
+    <p>Email from the address you sign in with and say which household to delete. We remove its entries and receipt files and confirm by reply.</p>
+
+    <p><a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a></p>
+  </article>
+</main>
+<footer class="land-footer"><div class="inner"><span>© 2026 Nineveh Ventures · DeductBook</span><span><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="support.html">Support</a></span></div></footer>
+</body>
+</html>

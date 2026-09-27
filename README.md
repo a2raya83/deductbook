@@ -17,6 +17,7 @@ records on a site you don't run a backend for. Backup & restore moves data betwe
 | `index.html` | Landing page (the public front door) |
 | `app.html` | The app: overview, donations, receipts, tax summary, value guide, rules, and the entry form |
 | `css/landing.css` | Landing-page styles (shares tokens with `css/app.css`) |
+| `privacy.html`, `terms.html`, `support.html` | Plain-language drafts for the beta; review before paid plans open. Support shows `contactEmail` from `js/config.js` once set |
 | `css/app.css` | Styles, light and dark palettes |
 | `js/rules.js` | IRS rules engine: thresholds, per-entry evaluation, appraisal grouping, year summary and filing checklist |
 | `js/fmv.js` | Fair-market-value ranges for ~130 commonly donated items, plus the appraisal-group map |
@@ -149,6 +150,10 @@ How it behaves:
 - **Migration** treats a local entry whose id already exists in the household as identical (skipped)
   or different (kept as an import conflict); it never overwrites or drops it. Every referenced receipt
   is downloaded back and compared by SHA-256 before the app offers to remove the device copy, and so is every copied file, linked or not. A referenced file that is missing on the device is reported rather than ignored.
+
+## Sample ledger and honest landing copy
+
+`app.html#sample` opens a sample ledger in its own storage (separate localStorage key and IndexedDB database) with a persistent banner; nothing done there touches real records, and the banner link returns to them. The landing page loads the same `js/config.js` as the app and shows household features as live only when cloud keys are present; on the public build without keys they read "coming soon" and the beta button is disabled.
 
 ## Optional donation ask
 

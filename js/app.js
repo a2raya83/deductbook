@@ -9,8 +9,12 @@
   const yearOf = e => (e.date || "").slice(0, 4);
   const thisYear = String(new Date().getFullYear());
 
+  // Sample mode is entered via #sample and left by opening app.html without it (a plain link from the banner).
+  const SAMPLE_MODE = location.hash === "#sample";
+  try { if (!SAMPLE_MODE) sessionStorage.removeItem("gl_sample_mode"); } catch (e) {}
+  if (SAMPLE_MODE) { window.Store.useNamespace("sample"); try { sessionStorage.setItem("gl_sample_mode", "1"); } catch (e) {} }
   let cloudMode = false;                 // true when signed in and a household ledger is open
-  const Cloud = window.Cloud || { configured: false };
+  const Cloud = (!SAMPLE_MODE && window.Cloud) || { configured: false };
   const Files = () => cloudMode ? Cloud.files : window.Store;   // receipt backend: household storage or this browser
   const readOnly = () => cloudMode && !Cloud.canWrite();
   let state = window.Store.loadState();
@@ -106,11 +110,13 @@
     ["overview", "ledger", "guide", "receipts", "summary", "rules"].forEach(id => { $("view-" + id).hidden = id !== v; });
     if (v === "ledger") mountForm("formMount", ["cash", "noncash", "stock", "mileage", "expense"]);
     if (v === "overview") renderOverview();
-    if (location.hash !== "#" + v) history.replaceState(null, "", "#" + v);
+    if (!SAMPLE_MODE && location.hash !== "#" + v) history.replaceState(null, "", "#" + v);   // the sample ledger keeps #sample so a reload stays in it
     window.scrollTo({ top: 0 });
   }
   document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => showView(t.dataset.view)));
   window.addEventListener("hashchange", () => {
+    // Entering or leaving the sample ledger switches storage, so it needs a real reload.
+    if (location.hash === "#sample" || (SAMPLE_MODE && location.hash !== "#sample" && !location.hash.startsWith("#invite"))) { location.reload(); return; }
     const v = location.hash.slice(1); if ($("view-" + v)) { showView(v); return; }
     // An invitation link opened in a tab that already has the app loaded is just a hash change:
     // handle it the same way a fresh load would.
@@ -402,24 +408,33 @@
   function renderOverview() {
     const vis = visibleEntries(); const cnt = vis.filter(isCountable); const s = summarize(vis);
     const user = Cloud.configured ? Cloud.user() : null;
-    $("overviewHero").innerHTML = `<div class="eyebrow">Deductible so far · ${yearLabel()}</div>
-      <div class="big">${money(s.deductible)}</div>
-      <div class="caption">${cnt.length} donation${cnt.length === 1 ? "" : "s"} · recorded ${money(s.gross)}${s.needsDocs ? ` · ${money(s.needsDocs)} needs documentation` : ""}${s.notEligible ? ` · ${money(s.notEligible)} not eligible` : ""}</div>
-      <div class="row"><span>Cash <b>${money(s.cash)}</b></span><span>Goods &amp; stock <b>${money(s.noncash)}</b></span><span>Volunteer costs <b>${money(s.volunteer)}</b></span></div>
-      <div class="actions"><button class="btn primary" type="button" data-go="summary">View tax summary</button><button class="btn" type="button" data-go="ledger">Add donation</button></div>`;
+    if (!cnt.length) {
+      $("overviewHero").innerHTML = `<div class="eyebrow">${yearLabel()}</div>
+        <div class="big" style="font-size:1.7rem">Your donation record starts here.</div>
+        <div class="caption">Add a gift as it happens, attach the receipt, and the tax summary builds itself. Money, goods, stock, mileage and volunteer costs all count.</div>
+        <div class="actions"><button class="btn primary" type="button" data-go="ledger">Add donation</button>${SAMPLE_MODE ? "" : `<a class="btn" href="app.html#sample">Explore a sample ledger</a>`}</div>`;
+    } else {
+      $("overviewHero").innerHTML = `<div class="eyebrow">Recorded donation value · ${yearLabel()}</div>
+        <div class="big">${money(s.gross)}</div>
+        <div class="caption">${cnt.length} donation${cnt.length === 1 ? "" : "s"} recorded</div>
+        <div class="row" style="margin-top:8px"><span>Estimated deduction <b>${money(s.deductible)}</b></span>${s.needsDocs ? `<span>of which <b>${money(s.needsDocs)}</b> still needs documentation</span>` : ""}${s.notEligible ? `<span><b>${money(s.notEligible)}</b> not eligible</span>` : ""}</div>
+        <div class="caption" style="font-size:0.78rem">Estimate after reductions such as value received in return and cost-basis limits, before AGI limits and the 0.5% floor. Not tax advice.</div>
+        <div class="row"><span>Cash <b>${money(s.cash)}</b></span><span>Goods &amp; stock <b>${money(s.noncash)}</b></span><span>Volunteer costs <b>${money(s.volunteer)}</b></span></div>
+        <div class="actions"><button class="btn primary" type="button" data-go="ledger">Add donation</button><button class="btn" type="button" data-go="summary">View tax summary</button></div>`;
+    }
     // needs attention: the specific record that's missing, with the action that fixes it
     const attention = cnt.map(e => ({ e, r: ev(e) })).filter(x => x.r.status !== "ok").sort((a, b) => b.r.gross - a.r.gross);
     const conflicts = vis.filter(e => !isCountable(e)).length;
-    $("overviewAttention").innerHTML = `<div class="card-head" style="margin-bottom:10px"><div><h3>Needs attention</h3><p>${attention.length || conflicts ? "Fix these before you file." : "Every record is complete."}</p></div></div>
+    $("overviewAttention").innerHTML = `<div class="card-head" style="margin-bottom:10px"><div><h3>Needs attention</h3><p>${attention.length || conflicts ? "Fix these before you file." : cnt.length ? "No documentation issues flagged." : "Issues with records will show up here."}</p></div></div>
       <div class="attention-list">${conflicts ? `<div class="attention-item"><div class="what"><b>${conflicts} import conflict${conflicts > 1 ? "s" : ""}</b><span>Both versions kept; choose one in Donations</span></div><button class="btn sm" type="button" data-go="ledger">Review</button></div>` : ""}
       ${attention.slice(0, 5).map(({ e, r }) => `<div class="attention-item"><div class="what"><b>${esc(e.org || describe(e))} · ${money(r.status === "stop" ? r.gross : r.deductible)}</b><span>${r.status === "stop" ? "Not eligible: " + esc((r.flags.find(f => f.level === "stop") || {}).text || "").split(".")[0].toLowerCase() : docsLabel(r)}</span></div><button class="btn sm" type="button" data-edit="${esc(e.id)}">${r.status === "stop" ? "Review" : "Add record"}</button></div>`).join("")}
       ${attention.length > 5 ? `<p class="small muted">and ${attention.length - 5} more in Donations</p>` : ""}
-      ${!attention.length && !conflicts ? `<div class="flag ok"><span>Nothing outstanding for ${yearLabel()}.</span></div>` : ""}</div>`;
+      ${!attention.length && !conflicts ? `<div class="flag ${cnt.length ? "ok" : "info"}"><span>${cnt.length ? `No documentation issues flagged for ${yearLabel()}.` : "Each donation is checked against the IRS record-keeping rules as you add it."}</span></div>` : ""}</div>`;
     // next steps: what to do now
     const steps = [];
     if (!cnt.length) steps.push(["Record your first donation", "Money, goods, stock or a volunteer cost. Takes a minute.", "ledger"]);
     if (attention.length) steps.push([`Resolve ${attention.length} item${attention.length > 1 ? "s" : ""} needing records`, "Acknowledgment letters and receipts, while the charity can still send them.", "ledger"]);
-    if (Cloud.configured && !user) steps.push(["Sign in to keep records across devices", "And share the ledger with your household.", "signin"]);
+    if (Cloud.configured && !user && !SAMPLE_MODE) steps.push(["Sign in to keep records across devices", "And share the ledger with your household.", "signin"]);
     if (cnt.length && !attention.length) steps.push(["Attach receipts you haven't yet", "Photos travel with the backup and the household ledger.", "receipts"]);
     steps.push(["Export the tax summary for your preparer", "Totals, filing checklist and a CSV of every donation.", "summary"]);
     $("overviewNext").innerHTML = `<div class="card-head" style="margin-bottom:10px"><div><h3>Next steps</h3></div></div><div class="next-steps">${steps.slice(0, 3).map(([t, d, go], i) => `<button class="next-step" type="button" data-go="${go}" style="text-align:left;cursor:pointer"><span class="n">${i + 1}</span><span class="t">${t}<span>${d}</span></span></button>`).join("")}</div>`;
@@ -636,7 +651,8 @@
   /* ---------- render all ---------- */
   function renderAll() {
     freeUrls();
-    $("sampleBanner").hidden = !state.entries.some(e => e.sample);
+    $("sampleBanner").hidden = !(SAMPLE_MODE || state.entries.some(e => e.sample));
+    if (SAMPLE_MODE) $("sampleBanner").innerHTML = `<b>Sample ledger.</b><span>Explore freely: nothing here touches your own records. Try adding a donation, opening the tax summary, or editing an entry.</span><div><a class="btn sm primary" href="app.html" id="exitSample">Start your own record</a></div>`;
     renderLedger(); renderGuide(); renderReceipts(); renderSummary(); if (currentView === "overview") renderOverview();
     if (form.parentElement && form.parentElement.id) renderThumbs();
   }
@@ -803,12 +819,14 @@
     const im = location.hash.match(/invite=([a-f0-9]+)/); if (im) { try { sessionStorage.setItem("gl_invite", im[1]); } catch (e) {} }
     const v = location.hash.slice(1);
     showView($("view-" + v) ? v : "overview");
+    if (SAMPLE_MODE) history.replaceState(null, "", "#sample");
     // device-mode boot first so the page is usable immediately
     const orphans = await window.Store.cleanupOrphans(state).catch(() => 0);
     await refreshReceipts();
     if (orphans) toast(`Removed ${orphans} receipt file${orphans > 1 ? "s" : ""} left over from an interrupted restore.`, true);
     renderYearPicker(); renderAll(); renderAccountBar();
-    if (wantSample && !state.entries.length) { loadSamples(); showView("overview"); }
+    if (SAMPLE_MODE && !state.entries.length) { loadSamples(); showView("overview"); }
+    if (SAMPLE_MODE) { $("cloudHint").hidden = true; document.title = "DeductBook · sample ledger"; }
     if (!window.Store.saveState(state)) toast("Heads up: this browser is blocking storage, so nothing you enter will be kept.", true);
     if (Cloud.configured) {
       try {

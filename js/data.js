@@ -1,10 +1,13 @@
 // Storage layer. Entries live in localStorage; receipt files live in IndexedDB.
 // Everything stays on this device. Backup/restore moves it as a single JSON file.
 (function () {
-  const LS_KEY = "giving_ledger_v2";
-  const DB_NAME = "giving-ledger";
+  // Storage keys keep their original names so existing users' data is untouched by the rename.
+  let LS_KEY = "giving_ledger_v2";
+  let DB_NAME = "giving-ledger";
   const STORE = "receipts";
   let dbPromise = null;
+  // The sample ledger lives in its own storage so exploring never touches real records.
+  function useNamespace(ns) { if (ns === "sample") { LS_KEY = "deductbook_sample_v1"; DB_NAME = "deductbook-sample"; } else { LS_KEY = "giving_ledger_v2"; DB_NAME = "giving-ledger"; } dbPromise = null; }
   const test = { failWrites: 0, allowFirst: 0, crashBeforeCommit: false, crashAfterCommit: false }; // test hook: after allowFirst successful writes, the next failWrites receipt writes fail (failure tests)
 
   function openDb() {
@@ -271,5 +274,5 @@
     return removed;
   }
 
-  window.Store = { uid, loadState, saveState, sanitizeEntry, signature, stableStringify, mergeEntries, cleanupOrphans, addReceipt, getReceipt, listReceipts, deleteReceipt, attachReceipts, clearReceipts, exportBackup, importBackup, _test: test };
+  window.Store = { useNamespace, uid, loadState, saveState, sanitizeEntry, signature, stableStringify, mergeEntries, cleanupOrphans, addReceipt, getReceipt, listReceipts, deleteReceipt, attachReceipts, clearReceipts, exportBackup, importBackup, _test: test };
 })();

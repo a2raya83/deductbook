@@ -10,6 +10,8 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap">
 <link rel="stylesheet" href="css/app.css">
 <link rel="stylesheet" href="css/landing.css">
+<script src="js/config.js"></script>
+<script src="js/config.local.js"></script>
 </head>
 <body>
 
@@ -22,11 +24,11 @@
     <div class="spacer"></div>
     <nav class="land-nav" aria-label="Page">
       <a href="#how">How it works</a>
-      <a href="#features">What's inside</a>
+      <a href="#summary">The summary</a>
       <a href="#pricing">Pricing</a>
       <a href="#faq">FAQ</a>
-      <a class="btn sm" href="app.html">Open DeductBook</a>
     </nav>
+    <a class="btn sm primary" href="app.html">Open DeductBook</a>
   </div>
 </header>
 
@@ -39,51 +41,81 @@
         <a class="btn primary" href="app.html">Start tracking donations</a>
         <a class="btn" href="app.html#sample">Explore a sample ledger</a>
       </div>
-      <p class="fine">Free to use on this device. Sign in to keep records across devices and share with your household. Not tax advice.</p>
+      <p class="fine" data-cloud="off">Free to use, saved on your device. Household accounts with cloud saving and sharing are coming soon. Not tax advice.</p>
+      <p class="fine" data-cloud="on" hidden>Free to use on this device. Sign in to keep records across devices and share with your household. Not tax advice.</p>
     </div>
 
-    <!-- The real overview, with sample data -->
+    <!-- The overview, simplified: one number, one task, two recent donations -->
     <div class="shot" aria-label="DeductBook overview with sample data">
       <div class="shot-bar"><span>Tax year <b>2026</b></span><span class="pill">Saved</span></div>
       <div class="shot-body">
         <div>
-          <div class="eyebrow">Deductible so far</div>
-          <div class="big">$5,749.66</div>
-          <div class="caption">11 donations · recorded $5,884.16 · $280.00 needs documentation · $14.50 not eligible</div>
+          <div class="eyebrow">Recorded donation value</div>
+          <div class="big">$970.00</div>
+          <div class="caption">3 donations · estimated deduction $970.00 · 1 needs a record</div>
         </div>
         <div class="attention-list">
-          <div class="attention-item"><div class="what"><b>Riverside Arts Center · $180.00</b><span>Acknowledgment needed · gift of $250 or more</span></div><span class="btn sm">Add record</span></div>
-          <div class="attention-item"><div class="what"><b>Community Chest street collection · $100.00</b><span>Receipt needed · cash with no bank record</span></div><span class="btn sm">Add record</span></div>
-          <div class="attention-item"><div class="what"><b>Meals on Wheels · $14.50</b><span>Not eligible: meals only count when away overnight</span></div><span class="btn sm">Review</span></div>
+          <div class="attention-item"><div class="what"><b>Riverside Arts Center · $300.00 cash</b><span>Acknowledgment needed · gifts of $250 or more need a letter from the charity</span></div><span class="btn sm">Add record</span></div>
         </div>
         <div class="recent">
+          <div class="recent-item"><div class="thumb-sm"><div class="receipt-swatch"></div></div><div class="who"><b>Greater Lakes Food Bank</b><span>Jan 14 · $500 by card · receipt attached</span></div><div class="amt">$500.00</div></div>
           <div class="recent-item"><div class="thumb-sm"><div class="receipt-swatch"></div></div><div class="who"><b>Goodwill Industries</b><span>Apr 18 · 2 suits, 2 coats, 20 books · receipt attached</span></div><div class="amt">$170.00</div></div>
-          <div class="recent-item"><div class="thumb-sm">PDF</div><div class="who"><b>Lakeshore Land Trust</b><span>Jun 3 · 20 sh VTI, held over a year</span></div><div class="amt">$4,200.00</div></div>
-          <div class="recent-item"><div class="thumb-sm">—</div><div class="who"><b>Habitat for Humanity</b><span>Jul 19 · flight to build week, on duty throughout</span></div><div class="amt">$486.40</div></div>
         </div>
-        <div class="actions"><span class="btn primary sm">View tax summary</span><span class="btn sm">Add donation</span></div>
+        <div class="actions"><span class="btn primary sm">Add donation</span><span class="btn sm">View tax summary</span></div>
       </div>
     </div>
   </section>
 
   <section id="how">
-    <div class="section-head"><h2 class="serif">Three steps, all year</h2><p>DeductBook is the folder you wish you'd kept. Add gifts as they happen, attach the paper, and the summary writes itself in March.</p></div>
+    <div class="section-head"><h2 class="serif">Three steps, all year</h2><p>Add gifts as they happen, attach the paper, and the summary builds itself before you file.</p></div>
     <div class="steps" style="margin-top:22px">
-      <div class="step"><div class="n">1</div><h3>Record the donation</h3><p>Money, goods, stock, mileage or an out-of-pocket volunteer cost. The form asks only for what the IRS asks for, and a value guide prices donated goods at thrift-store fair market value.</p></div>
-      <div class="step"><div class="n">2</div><h3>Attach the receipt</h3><p>Snap the receipt or the charity's thank-you letter. DeductBook tells you when a gift of $250 or more still needs a written acknowledgment, and when goods over $500 need Form 8283.</p></div>
+      <div class="step"><div class="n">1</div><h3>Record the donation</h3><p>Money, goods, stock, mileage or an out-of-pocket volunteer cost. A value guide prices donated goods at thrift-store fair market value.</p></div>
+      <div class="step"><div class="n">2</div><h3>Attach the receipt</h3><p>Snap the receipt or the charity's letter. DeductBook tells you when a gift of $250 or more still needs a written acknowledgment, and when goods over $500 need Form 8283.</p></div>
       <div class="step"><div class="n">3</div><h3>Hand over the summary</h3><p>Totals by type, donor and organization, a filing checklist, and a CSV your preparer can open. Every entry shows whether its records are complete.</p></div>
     </div>
   </section>
 
+  <section id="summary">
+    <div class="section-head"><h2 class="serif">What you hand your preparer</h2><p>The tax summary is the point of the whole year. Here is one, with sample data.</p></div>
+    <div class="summary-preview" style="margin-top:22px">
+      <div class="summary-doc">
+        <div class="doc-title">Tax summary · 2026</div>
+        <div class="doc-sub">Recorded $5,884.16 · estimated deduction $5,749.66 · before AGI limits and the 0.5% floor</div>
+        <div class="summary-cols">
+          <div>
+            <div class="eyebrow" style="margin-top:16px">By type</div>
+            <dl class="kv" style="margin-top:6px">
+              <dt><span class="dot c1"></span>Cash / check / card</dt><dd>$820.00</dd>
+              <dt><span class="dot c2"></span>Goods (non-cash)</dt><dd>$170.00</dd>
+              <dt><span class="dot c3"></span>Stock / securities</dt><dd>$4,200.00</dd>
+              <dt><span class="dot c4"></span>Volunteer mileage</dt><dd>$15.06</dd>
+              <dt><span class="dot c5"></span>Volunteer expenses</dt><dd>$544.60</dd>
+              <dt class="total">Total</dt><dd class="total">$5,749.66</dd>
+            </dl>
+          </div>
+          <div>
+            <div class="eyebrow" style="margin-top:16px">Filing checklist</div>
+            <div class="checklist" style="margin-top:6px">
+              <div class="item"><span class="mk need">!</span><span>Schedule A, lines 11 and 12</span></div>
+              <div class="item"><span class="mk need">!</span><span>Form 8283 Section A: non-cash gifts total $4,370.00, over $500</span></div>
+              <div class="item"><span class="mk need">!</span><span>2 gifts of $250 or more still need a written acknowledgment</span></div>
+              <div class="item"><span class="mk na">–</span><span>No item or group of similar items over $5,000: no appraisal needed</span></div>
+              <div class="item"><span class="mk done">✓</span><span>Every counted entry has a receipt, bank record or acknowledgment on file</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="doc-foot">Exports: entry CSV · itemized goods CSV · copy as text</div>
+      </div>
+    </div>
+  </section>
+
   <section id="features">
-    <div class="section-head"><h2 class="serif">What's inside</h2><p>Built for the whole picture of a household's giving, not just the donation pile.</p></div>
+    <div class="section-head"><h2 class="serif">What's inside</h2></div>
     <div class="feature-grid" style="margin-top:22px">
-      <div class="feature"><h3>Every kind of gift</h3><p>Cash, check and card. Goods with itemized values. Stock with cost basis and holding period. Volunteer mileage at the statutory 14¢, plus parking, supplies and travel, with the rules for what counts applied as you type.</p></div>
-      <div class="feature"><h3>Documentation, checked</h3><p>Each donation shows Records OK, Acknowledgment needed, or Not eligible, with the reason in plain English. Recorded value and deductible value are kept distinct.</p></div>
-      <div class="feature"><h3>One household ledger</h3><p>Invite your spouse; both of you add donations and receipts to the same records from any device. Changes appear live, and simultaneous edits are kept, never silently overwritten.</p></div>
-      <div class="feature"><h3>Receipts that travel</h3><p>Photos and PDFs stay attached to their donations, stored privately for your household, and included in every backup.</p></div>
+      <div class="feature"><h3>Every kind of gift</h3><p>Cash, goods with itemized values, stock with cost basis and holding period, and volunteer mileage and expenses with the rules for what counts applied as you type.</p></div>
+      <div class="feature"><h3>Documentation, named</h3><p>Each donation shows Records OK, Acknowledgment needed, Receipt needed, or Not eligible, with the reason in plain English. Recorded value and estimated deduction are kept distinct.</p></div>
+      <div class="feature"><h3 data-cloud="label">One household ledger</h3><p>Invite your spouse; both of you add donations and receipts to the same records from any device. Simultaneous edits are kept, never silently overwritten.</p><p class="small muted" data-cloud="off">Coming soon. Today, records stay on your device with backup files to move them.</p></div>
       <div class="feature"><h3>A value guide with sources</h3><p>Typical thrift-store ranges for about 130 common items, adjusted by condition, with the IRS rules on appraisals and similar-item aggregation built in.</p></div>
-      <div class="feature"><h3>Accountant-ready export</h3><p>A tax summary, an entry-level CSV, and an itemized goods CSV that maps to Form 8283. Read-only access for a preparer, if you want to give it.</p></div>
     </div>
   </section>
 
@@ -98,7 +130,7 @@
       <ul>
         <li>Start with this year's gifts; the value guide covers the same kinds of items.</li>
         <li>Your data is yours: export a full backup or a CSV at any time.</li>
-        <li>Import from a backup file is built in. A spreadsheet importer is on the roadmap.</li>
+        <li>Restoring from a DeductBook backup file is built in. A spreadsheet importer is on the roadmap.</li>
       </ul>
     </div>
   </section>
@@ -118,7 +150,7 @@
         <a class="btn" href="app.html">Start free</a>
       </div>
       <div class="plan featured">
-        <div class="eyebrow">Household · beta</div>
+        <div class="eyebrow"><span data-cloud="on" hidden>Household · beta</span><span data-cloud="off">Household · coming soon</span></div>
         <div class="price">Free during beta <small>· planned price $19/year per household</small></div>
         <ul>
           <li>Everything in Free</li>
@@ -128,7 +160,8 @@
           <li>Read-only access for your accountant</li>
         </ul>
         <p class="note">If you ever stop paying, your records and exports stay available; only adding and sharing pause.</p>
-        <a class="btn primary" href="app.html">Join the beta</a>
+        <a class="btn primary" href="app.html" data-cloud="on" hidden>Join the beta</a>
+        <span class="btn" aria-disabled="true" data-cloud="off">Not available yet</span>
       </div>
     </div>
   </section>
@@ -137,7 +170,7 @@
     <div class="section-head"><h2 class="serif">Questions</h2></div>
     <div class="faq" style="margin-top:18px">
       <details><summary>Is this tax advice?</summary><p>No. DeductBook organizes your records and explains the IRS rules in plain English, citing Publication 526 and 561. Confirm deductions with a qualified preparer. It doesn't file returns and doesn't promise a refund.</p></details>
-      <details><summary>Where is my data stored?</summary><p>Without an account, only in your browser; nothing is uploaded. With a household account, in a database and private file storage where access is limited to the people in your household. Either way you can export everything.</p></details>
+      <details><summary>Where is my data stored?</summary><p>Without an account, only in your browser; nothing is uploaded. With a household account, in a database and private file storage where access is limited to the people in your household. Either way you can export everything. Details are on the <a href="privacy.html">privacy page</a>.</p></details>
       <details><summary>How does household sharing work?</summary><p>Donations belong to a household, not a person. The owner invites people by email. Members can add and edit; viewers, like an accountant, can only read and export. If two people edit the same donation at once, both versions are kept for you to choose from.</p></details>
       <details><summary>What about volunteer expenses?</summary><p>Mileage is deductible at 14¢ a mile plus parking and tolls. Supplies, uniforms with no everyday use, and travel away from home on real charity duty count. Your time, local meals, and childcare don't. DeductBook applies these rules as you fill in the form.</p></details>
       <details><summary>Can I import from ItsDeductible?</summary><p>Not directly yet. You can start with this year's gifts and value items with the same kind of guide. A spreadsheet importer is on the roadmap.</p></details>
@@ -148,8 +181,18 @@
 <footer class="land-footer">
   <div class="inner">
     <span>© 2026 Nineveh Ventures · DeductBook</span>
-    <span><a href="app.html">Open DeductBook</a><a href="app.html#rules">IRS rules</a><a href="app.html#guide">Value guide</a><a href="https://github.com/a2raya83/giving-ledger" target="_blank" rel="noopener">Source</a></span>
+    <span><a href="app.html">Open DeductBook</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="support.html">Support</a><a href="app.html#rules">IRS rules</a></span>
   </div>
 </footer>
+<script>
+  // Say only what a visitor can actually do: household features show as live only when the app is configured for accounts.
+  (function () {
+    var c = (window.SITE_CONFIG && window.SITE_CONFIG.cloud) || {};
+    var on = !!(c.url && c.anonKey);
+    document.querySelectorAll('[data-cloud="on"]').forEach(function (el) { el.hidden = !on; });
+    document.querySelectorAll('[data-cloud="off"]').forEach(function (el) { el.hidden = on; });
+    document.querySelectorAll('[data-cloud="label"]').forEach(function (el) { if (!on) el.textContent = el.textContent + " (coming soon)"; });
+  })();
+</script>
 </body>
 </html>

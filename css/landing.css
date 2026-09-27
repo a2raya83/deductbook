@@ -74,3 +74,21 @@
   .land { gap: 52px; }
   .land-nav { display: none; }
 }
+
+/* Tax summary preview on the landing page */
+.summary-preview .summary-doc { max-width: 900px; }
+.summary-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.summary-doc .doc-foot { margin-top: 18px; font-size: 0.8rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 10px; }
+@media (max-width: 700px) { .summary-cols { grid-template-columns: 1fr; } }
+
+/* Legal / support pages */
+.legal { gap: 0; padding-top: 30px; }
+.legal article { max-width: 68ch; display: grid; gap: 12px; }
+.legal h1 { font-size: 2rem; }
+.legal h2 { font-size: 1.05rem; margin-top: 14px; }
+.legal p, .legal li { color: var(--ink-2); line-height: 1.6; }
+.legal ul { padding-left: 18px; margin: 0; }
+
+/* Keep the Open button beside the logo on phones; hide only the section links */
+.land-header .btn { flex: none; }
+.btn[aria-disabled="true"] { opacity: 0.6; cursor: default; }
