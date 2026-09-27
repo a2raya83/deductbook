@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>DeductBook</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #2b2b2b; font-family: Inter, system-ui, sans-serif; }
+  embed, iframe { display: block; width: 100%; height: 100%; border: 0; }
+  .msg { color: #eee; padding: 24px; font-size: 15px; line-height: 1.5; }
+  .msg a { color: #9fd3c7; }
+</style>
+</head>
+<body>
+<script>
+  // Opened by the app to show an attachment: the file is a same-origin blob URL created by the ledger page,
+  // so the address bar shows deductbook.com and the tab is titled with the real file name.
+  (function () {
+    var p = new URLSearchParams(location.hash.slice(1));
+    var name = p.get("name") || "Attachment", src = p.get("src") || "";
+    document.title = name + " · DeductBook";
+    if (!/^blob:/.test(src)) { document.body.innerHTML = '<p class="msg">This viewer is opened from the ledger. <a href="app.html">Back to DeductBook</a></p>'; return; }
+    var e = document.createElement("embed"); e.src = src; e.type = p.get("type") || "application/pdf"; document.body.appendChild(e);
+  })();
+</script>
+</body>
+</html>

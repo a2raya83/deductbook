@@ -52,10 +52,15 @@
   // name), fetched as a blob in cloud mode so the address bar never shows the storage host or an opaque object id.
   async function openReceipt(r) {
     if (r.type.startsWith("image/")) { modal(`<img src="${urlFor(r)}" alt="${esc(r.name)}"><div class="actions"><button class="btn" data-close type="button">Close</button></div>`, { wide: true }); return; }
+    // PDFs open in our own viewer page (real file name in the tab, deductbook.com in the address bar). The tab is
+    // opened synchronously, inside the click, so browsers don't treat it as a pop-up once the download finishes.
+    const isPdf = fileLabel(r) === "PDF";
+    const w = isPdf ? window.open("about:blank", "_blank") : null;
+    if (isPdf && !w) { toast("Pop-up blocked. Allow pop-ups for this site to open files.", true); return; }
     let blob = r.blob;
-    if (!blob) { try { blob = await Files().fetchBlob(r); } catch (e) { toast("Couldn't open " + r.name + ": " + e.message, true); return; } }
+    if (!blob) { try { blob = await Files().fetchBlob(r); } catch (e) { if (w) w.close(); toast("Couldn't open " + r.name + ": " + e.message, true); return; } }
     const u = URL.createObjectURL(blob); objectUrls.push(u);
-    if (fileLabel(r) === "PDF") { const w = window.open(u, "_blank"); if (!w) toast("Pop-up blocked. Allow pop-ups for this site to open files.", true); return; }
+    if (isPdf) { w.location = "viewer.html#" + new URLSearchParams({ name: r.name || "Attachment", src: u, type: "application/pdf" }).toString(); return; }
     const link = document.createElement("a"); link.href = u; link.download = r.name || "attachment"; document.body.appendChild(link); link.click(); link.remove();
   }
   async function refreshReceipts() { try { receiptsCache = await Files().listReceipts(); } catch (e) { receiptsCache = []; toast(cloudMode ? "Couldn't load receipts from the household ledger: " + e.message : "Receipt storage is unavailable in this browser; files can't be shown.", true); } }
