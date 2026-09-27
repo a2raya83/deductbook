@@ -112,6 +112,10 @@ Still open:
 - Test project paused to free the second free-plan slot. Restore it (and rename `js/config.local.test.js`
   to `js/config.local.js`) to re-run the live suite; pause it again afterwards.
 
+- Support address: support@deductbook.com via Cloudflare Email Routing (2026-09-27), forwarded to the
+  owner's Gmail with a +deductbook tag. Root-domain MX/SPF/DKIM records are Cloudflare's; Resend keeps
+  the mail subdomain for outgoing sign-in email.
+
 ## 3. Then
 
 Send the reviewer the results of sections 1 and 2. If everything passes, flip the sign-up gate
