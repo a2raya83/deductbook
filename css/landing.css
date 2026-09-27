@@ -28,6 +28,18 @@
 .shot .actions { margin-top: 4px; }
 .shot .receipt-swatch { width: 100%; height: 100%; background: linear-gradient(135deg, #e8e2d2, #cfc6ad); }
 .shot .big small { font-size: 0.95rem; font-weight: 500; color: var(--ink-2); letter-spacing: 0; }
+.shot-slides { position: relative; }
+.shot .who em.by { font-style: normal; color: var(--accent); }
+.shot .flags { display: grid; gap: 8px; }
+.shot .flag { font-size: 0.82rem; }
+.shot .small-kv { font-size: 0.88rem; }
+.shot .checklist { font-size: 0.85rem; }
+.shot-dots { display: flex; gap: 6px; padding: 8px 12px 12px; border-top: 1px solid var(--line); }
+.shot-dots button { font: inherit; font-size: 0.78rem; color: var(--ink-2); background: transparent; border: 1px solid transparent; border-radius: 999px; padding: 4px 10px; cursor: pointer; }
+.shot-dots button[aria-selected="true"] { background: var(--surface-2); border-color: var(--line-strong); color: var(--ink); }
+.rule-examples { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 22px; }
+.rule-example .flag { font-size: 0.95rem; line-height: 1.5; }
+@media (max-width: 700px) { .rule-examples { grid-template-columns: 1fr; } }
 .shot-note { display: inline-flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--ink-2); padding: 6px 10px; border: 1px solid var(--line); border-radius: 999px; justify-self: start; }
 .dot-note { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); }
 .hero .cta { align-items: center; }

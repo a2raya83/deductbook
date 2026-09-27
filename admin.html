@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DeductBook admin</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap">
+<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/landing.css">
+<style>
+  .admin { max-width: 1120px; margin: 0 auto; padding: 24px 16px 60px; display: grid; gap: 18px; }
+  .admin table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+  .admin th, .admin td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .admin th { font-weight: 600; color: var(--ink-2); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .admin td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .admin .stale { color: var(--warn); }
+  .admin .table-wrap { overflow-x: auto; }
+</style>
+</head>
+<body>
+<header class="appbar land-header"><div class="appbar-inner"><a class="logo" href="./"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v16H6.5A1.5 1.5 0 0 0 5 20.5z"/><path d="M5 20.5V4.5"/><path d="M14 3v8l-2.2-1.5L9.6 11V3"/></svg><span class="name">Deduct<b>Book</b></span></a><div class="spacer"></div><span id="who" class="small muted"></span><button class="btn sm" id="signOut" type="button" hidden>Sign out</button></div></header>
+<main class="admin">
+  <div><h1 class="serif" style="font-size:1.6rem">Accounts overview</h1><p class="small muted">Sign-ups, sign-in activity and storage per account and household, for abuse review. Amounts, organizations and receipt contents are not shown here and cannot be fetched by this page.</p></div>
+  <div class="card" id="gate">
+    <div id="signin">
+      <h3>Sign in</h3><p class="small">Use the same email link as the app. Only listed administrators see any data.</p>
+      <div class="field w12" style="margin-top:10px;max-width:420px"><label for="adEmail">Email</label><input id="adEmail" type="email" autocomplete="email" placeholder="you@example.com"></div>
+      <div class="actions"><button class="btn primary" id="adGo" type="button">Email me a link</button></div><p class="small" id="adMsg"></p>
+    </div>
+  </div>
+  <div class="card" id="usersCard" hidden><div class="card-head"><div><h3>Accounts</h3><p id="usersSummary" class="small muted"></p></div><button class="btn sm" id="refresh" type="button">Refresh</button></div><div class="table-wrap" id="users"></div></div>
+  <div class="card" id="hhCard" hidden><div class="card-head"><div><h3>Households</h3><p class="small muted">Members with roles, record counts and storage. Paused or canceled plans are read-only for their members.</p></div></div><div class="table-wrap" id="households"></div></div>
+</main>
+<footer class="land-footer"><div class="inner"><span>© 2026 Nineveh Ventures · DeductBook</span><span><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></span></div></footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/config.local.js"></script>
+<script src="js/cloud.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

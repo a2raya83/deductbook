@@ -468,5 +468,7 @@
     return { entries: rows.length - conflicts, conflicts, skipped, receipts: uploaded, receiptsReused: reused, verified, missingEntries, missingReceipts, all: fresh };
   };
 
+  // Generic RPC for pages outside the ledger (the admin page); the server decides who may call what.
+  Cloud.rpc = async function (fn, args) { const { data, error } = await sb.rpc(fn, args || {}); if (error) throw new Error(error.message); return data; };
   window.Cloud = Cloud;
 })();

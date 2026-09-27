@@ -225,3 +225,45 @@ do $$ begin
   begin alter publication supabase_realtime add table public.entries; exception when duplicate_object then null; end;
   begin alter publication supabase_realtime add table public.receipts; exception when duplicate_object then null; end;
 end $$;
+
+-- ---------- site administration ----------
+-- Who may read the account overview. Add a row per operator:
+--   insert into public.admins(user_id) select id from auth.users where email = 'you@example.com';
+create table if not exists public.admins (
+  user_id  uuid primary key references auth.users(id) on delete cascade,
+  added_at timestamptz not null default now()
+);
+alter table public.admins enable row level security;
+drop policy if exists admins_self on public.admins;
+create policy admins_self on public.admins for select using (user_id = auth.uid());
+create or replace function public.is_admin()
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.admins a where a.user_id = auth.uid());
+$$;
+-- Account overview for fraud and abuse review: who signed up, when they last signed in, how much they
+-- store. Amounts, organizations and receipt contents are never returned.
+create or replace function public.admin_users()
+returns table (user_id uuid, email text, created_at timestamptz, last_sign_in_at timestamptz, sign_ins_30d bigint, households bigint, entries bigint, receipts bigint)
+language sql stable security definer set search_path = public as $$
+  select u.id, u.email::text, u.created_at, u.last_sign_in_at,
+    (select count(*) from auth.audit_log_entries l where l.created_at > now() - interval '30 days' and l.payload->>'action' = 'login' and l.payload->>'actor_id' = u.id::text),
+    (select count(*) from public.household_members m where m.user_id = u.id),
+    (select count(*) from public.entries e join public.household_members m on m.household_id = e.household_id where m.user_id = u.id),
+    (select count(*) from public.receipts r join public.household_members m on m.household_id = r.household_id where m.user_id = u.id)
+  from auth.users u
+  where public.is_admin()
+  order by u.created_at desc;
+$$;
+create or replace function public.admin_households()
+returns table (id uuid, name text, plan_status text, created_at timestamptz, members text, entries bigint, receipts bigint, storage_bytes bigint, last_change timestamptz)
+language sql stable security definer set search_path = public as $$
+  select h.id, h.name, h.plan_status, h.created_at,
+    (select string_agg(u.email::text || ' (' || m.role || ')', ', ' order by m.joined_at) from public.household_members m join auth.users u on u.id = m.user_id where m.household_id = h.id),
+    (select count(*) from public.entries e where e.household_id = h.id),
+    (select count(*) from public.receipts r where r.household_id = h.id),
+    (select coalesce(sum(r.size), 0) from public.receipts r where r.household_id = h.id),
+    (select max(e.updated_at) from public.entries e where e.household_id = h.id)
+  from public.households h
+  where public.is_admin()
+  order by h.created_at desc;
+$$;

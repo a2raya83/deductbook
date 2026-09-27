@@ -46,6 +46,18 @@
   }
   function freeUrls() { objectUrls.forEach(u => URL.revokeObjectURL(u)); objectUrls = []; }
   function urlFor(rec) { if (rec.url) return rec.url; const u = URL.createObjectURL(rec.blob); objectUrls.push(u); return u; }
+  // Short label for a non-image attachment: PDF, DOC, XLS, CSV, TXT, EML or FILE.
+  function fileLabel(rec) { const n = (rec.name || "").toLowerCase(); const t = rec.type || ""; if (t === "application/pdf" || n.endsWith(".pdf")) return "PDF"; if (/\.docx?$/.test(n) || /msword|wordprocessingml/.test(t)) return "DOC"; if (/\.xlsx?$/.test(n) || /spreadsheetml|ms-excel/.test(t)) return "XLS"; if (n.endsWith(".csv")) return "CSV"; if (n.endsWith(".txt") || t === "text/plain") return "TXT"; if (n.endsWith(".eml")) return "EML"; return "FILE"; }
+  // Open an attachment: images in the viewer; other files in a new tab (or as a download that keeps the original file
+  // name), fetched as a blob in cloud mode so the address bar never shows the storage host or an opaque object id.
+  async function openReceipt(r) {
+    if (r.type.startsWith("image/")) { modal(`<img src="${urlFor(r)}" alt="${esc(r.name)}"><div class="actions"><button class="btn" data-close type="button">Close</button></div>`, { wide: true }); return; }
+    let blob = r.blob;
+    if (!blob) { try { blob = await Files().fetchBlob(r); } catch (e) { toast("Couldn't open " + r.name + ": " + e.message, true); return; } }
+    const u = URL.createObjectURL(blob); objectUrls.push(u);
+    if (fileLabel(r) === "PDF") { const w = window.open(u, "_blank"); if (!w) toast("Pop-up blocked. Allow pop-ups for this site to open files.", true); return; }
+    const link = document.createElement("a"); link.href = u; link.download = r.name || "attachment"; document.body.appendChild(link); link.click(); link.remove();
+  }
   async function refreshReceipts() { try { receiptsCache = await Files().listReceipts(); } catch (e) { receiptsCache = []; toast(cloudMode ? "Couldn't load receipts from the household ledger: " + e.message : "Receipt storage is unavailable in this browser; files can't be shown.", true); } }
   const receiptsFor = e => (e.receiptIds || []).map(id => receiptsCache.find(r => r.id === id)).filter(Boolean);
   // Delete a receipt file only if no entry still references it (a conflict copy and its original share files).
@@ -279,7 +291,7 @@
   dz.addEventListener("drop", ev => { ev.preventDefault(); dz.classList.remove("over"); handleFiles([...ev.dataTransfer.files]); });
   function renderThumbs() {
     const recs = pendingReceiptIds.map(id => receiptsCache.find(r => r.id === id) || { id, missing: true, name: "file missing", type: "" });
-    $("thumbs").innerHTML = recs.map(r => `<div class="thumb" data-id="${esc(r.id)}">${r.missing ? `<span>File missing<br>(not restored)</span>` : r.type.startsWith("image/") ? `<img src="${urlFor(r)}" alt="">` : `<span>PDF<br>${esc(r.name.slice(0, 18))}</span>`}<button type="button" class="rm" title="Remove" aria-label="Remove receipt">×</button></div>`).join("");
+    $("thumbs").innerHTML = recs.map(r => `<div class="thumb" data-id="${esc(r.id)}">${r.missing ? `<span>File missing<br>(not restored)</span>` : r.type.startsWith("image/") ? `<img src="${urlFor(r)}" alt="">` : `<span>${fileLabel(r)}<br>${esc(r.name.slice(0, 18))}</span>`}<button type="button" class="rm" title="Remove" aria-label="Remove receipt">×</button></div>`).join("");
     $("thumbs").querySelectorAll(".rm").forEach(b => b.addEventListener("click", async () => {
       const id = b.parentElement.dataset.id; pendingReceiptIds = pendingReceiptIds.filter(x => x !== id);
       if (originalReceiptIds.includes(id)) { stagedRemovals.push(id); $("saveHint").textContent = "Receipt will be removed when you save. Cancel to keep it."; }
@@ -352,7 +364,7 @@
   function renderTable(container, entries, emptyHtml) {
     if (!entries.length) { container.innerHTML = `<div class="empty">${emptyHtml}</div>`; return; }
     const sorted = [...entries].sort((a, b) => (b.date || "").localeCompare(a.date || "") || (b.createdAt || "").localeCompare(a.createdAt || ""));
-    container.innerHTML = `<table><thead><tr><th>Date</th><th>Organization</th><th>Donor</th><th>Type</th><th>Status</th><th class="r">Deductible</th><th></th></tr></thead><tbody>${sorted.map(entryRow).join("")}</tbody></table>`;
+    container.innerHTML = `<table><thead><tr><th>Date</th><th>Organization</th><th>Given by</th><th>Type</th><th>Status</th><th class="r">Deductible</th><th></th></tr></thead><tbody>${sorted.map(entryRow).join("")}</tbody></table>`;
     container.querySelectorAll("[data-act]").forEach(b => b.addEventListener("click", () => {
       const id = b.closest("tr").dataset.id; const e = state.entries.find(x => x.id === id); if (!e) return;
       if (b.dataset.act === "edit") { showView("ledger"); fillForm(e); }
@@ -406,7 +418,7 @@
     const orgs = [...new Set(state.entries.map(e => e.org).filter(Boolean))].sort();
     $("donorList").innerHTML = donors.map(d => `<option value="${esc(d)}">`).join(""); $("orgList").innerHTML = orgs.map(o => `<option value="${esc(o)}">`).join("");
     if ($("kindFilter").options.length === 1) $("kindFilter").innerHTML += order.map(k => `<option value="${k}">${KINDS[k].label}</option>`).join("");
-    const prevD = $("donorFilter").value; $("donorFilter").innerHTML = `<option value="">All donors</option>` + donors.map(d => `<option value="${esc(d)}">${esc(d)}</option>`).join(""); $("donorFilter").value = prevD;
+    const prevD = $("donorFilter").value; $("donorFilter").innerHTML = `<option value="">Everyone</option>` + donors.map(d => `<option value="${esc(d)}">${esc(d)}</option>`).join(""); $("donorFilter").value = prevD;
     const rows = vis.filter(e => (!kf || e.kind === kf) && (!df || e.donor === df) && (!q || [e.org, e.donor, e.notes, describe(e)].join(" ").toLowerCase().includes(q)));
     renderTable($("ledgerTable"), rows, vis.length ? `<h3>No entries match those filters.</h3>` : `<h3>No gifts logged for ${yearLabel()} yet.</h3><p>Record your first gift above, or <button class="btn sm" type="button" id="loadSamplesInline">load sample entries</button> to see how the ledger works.</p>`);
     const ls = $("loadSamplesInline"); if (ls) ls.addEventListener("click", loadSamples);
@@ -491,14 +503,14 @@
       <div class="flags">${optional.map(e => row(e, "info", "Attach")).join("")}</div>` : "");
     $("missingReceipts").querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => { const e = state.entries.find(x => x.id === b.dataset.edit); showView("ledger"); fillForm(e); }));
     const total = receiptsCache.reduce((t, r) => t + (r.size || 0), 0);
-    $("receiptStorage").textContent = receiptsCache.length ? `${receiptsCache.length} file${receiptsCache.length === 1 ? "" : "s"}, ${(total / 1024 / 1024).toFixed(1)} MB stored in this browser.` : "No files yet.";
+    $("receiptStorage").textContent = receiptsCache.length ? `${receiptsCache.length} file${receiptsCache.length === 1 ? "" : "s"}, ${(total / 1024 / 1024).toFixed(1)} MB ${cloudMode ? "in your household's private storage" : "stored in this browser"}.` : "No files yet.";
     const list = [...receiptsCache].sort((a, b) => (b.addedAt || "").localeCompare(a.addedAt || ""));
     $("receiptGrid").innerHTML = list.length ? list.map(r => { const e = state.entries.find(x => (x.receiptIds || []).includes(r.id)); return `<div class="receipt-card" data-id="${esc(r.id)}">
-        <div class="img" data-open="${esc(r.id)}">${r.type.startsWith("image/") ? `<img src="${urlFor(r)}" alt="${esc(r.name)}">` : `<span class="small">PDF · ${esc(r.name.slice(0, 22))}</span>`}</div>
+        <div class="img" data-open="${esc(r.id)}">${r.type.startsWith("image/") ? `<img src="${urlFor(r)}" alt="${esc(r.name)}">` : `<span class="small">${fileLabel(r)} · ${esc(r.name.slice(0, 22))}</span>`}</div>
         <div class="meta">${e ? `<b>${esc(e.org || describe(e))}</b><span class="muted">${fmtDate(e.date)} · ${money(ev(e).deductible)}</span>` : `<b class="muted">Not linked to an entry</b><button class="btn sm link" type="button" data-link="${esc(r.id)}">Link to entry</button>`}
-        <div class="row-actions" style="justify-content:flex-start;margin-top:6px"><a class="btn sm" href="${urlFor(r)}" target="_blank" rel="noopener">Open</a><button class="btn sm danger" type="button" data-rm="${esc(r.id)}">Delete</button></div></div></div>`; }).join("")
+        <div class="row-actions" style="justify-content:flex-start;margin-top:6px"><button class="btn sm" type="button" data-openfile="${esc(r.id)}">Open</button><button class="btn sm danger" type="button" data-rm="${esc(r.id)}">Delete</button></div></div></div>`; }).join("")
       : `<div class="empty"><h3>No receipts stored.</h3><p>Attach files from the entry form, or add them here.</p></div>`;
-    $("receiptGrid").querySelectorAll("[data-open]").forEach(el => el.addEventListener("click", () => { const r = receiptsCache.find(x => x.id === el.dataset.open); if (!r) return; if (r.type.startsWith("image/")) modal(`<img src="${urlFor(r)}" alt="${esc(r.name)}"><div class="actions"><button class="btn" data-close type="button">Close</button></div>`, { wide: true }); else window.open(urlFor(r), "_blank"); }));
+    $("receiptGrid").querySelectorAll("[data-open], [data-openfile]").forEach(el => el.addEventListener("click", () => { const r = receiptsCache.find(x => x.id === (el.dataset.open || el.dataset.openfile)); if (r) openReceipt(r); }));
     $("receiptGrid").querySelectorAll("[data-rm]").forEach(b => b.addEventListener("click", async () => {
       if (!b.dataset.confirm) { b.dataset.confirm = "1"; b.textContent = "Confirm"; setTimeout(() => { delete b.dataset.confirm; b.textContent = "Delete"; }, 3500); return; }
       const id = b.dataset.rm;
@@ -540,13 +552,13 @@
     $("summaryGrid").innerHTML = `
       <div class="card"><h3>By type</h3><dl class="kv" style="margin-top:10px">${order.map(k => `<dt><span class="dot c${KINDS[k].color}"></span>${KINDS[k].label}</dt><dd class="num">${money(s.byKind[k])}</dd>`).join("")}<dt class="total">Total</dt><dd class="total num">${money(s.deductible)}</dd></dl></div>
       ${checklists}
-      <div class="card"><h3>By donor</h3><div style="margin-top:10px">${kv(s.byDonor)}</div><p class="small muted" style="margin-top:8px">Married filing jointly combines everyone; separate returns split by donor.</p></div>
+      <div class="card"><h3>By household member</h3><div style="margin-top:10px">${kv(s.byDonor)}</div><p class="small muted" style="margin-top:8px">Married filing jointly combines everyone; separate returns split by donor.</p></div>
       <div class="card"><h3>By organization</h3><div style="margin-top:10px">${kv(s.byOrg)}</div></div>`;
     renderSupport();
   }
   const csvCell = v => `"${String(v == null ? "" : v).replace(/"/g, '""')}"`;
   function csvFor(entries) {
-    const cols = ["Date", "Tax year", "Donor", "Organization", "Type", "Description", "Recorded value", "Value received in return", "Deductible", "Status", "Payment method", "Check/confirmation", "Miles", "Parking & tolls", "Cost basis", "Held > 1 year", "Written acknowledgment", "Bank record", "Receipt files", "How valued", "Acquired / cost", "Expense category", "Notes"];
+    const cols = ["Date", "Tax year", "Given by", "Organization", "Type", "Description", "Recorded value", "Value received in return", "Deductible", "Status", "Payment method", "Check/confirmation", "Miles", "Parking & tolls", "Cost basis", "Held > 1 year", "Written acknowledgment", "Bank record", "Receipt files", "How valued", "Acquired / cost", "Expense category", "Notes"];
     const lines = [cols.join(",")];
     [...entries].sort((a, b) => (a.date || "").localeCompare(b.date || "")).forEach(e => {
       const r = ev(e); const st = e.stock || {};
@@ -558,7 +570,7 @@
   }
   // One row per donated item — the inventory Form 8283 and a preparer want.
   function itemsCsvFor(entries) {
-    const cols = ["Date", "Tax year", "Donor", "Organization", "Item", "Category", "Condition", "Qty", "Value each", "Line total", "Guide low", "Guide high", "How valued", "Acquired / cost", "Acknowledgment", "Receipt files", "Entry notes"];
+    const cols = ["Date", "Tax year", "Given by", "Organization", "Item", "Category", "Condition", "Qty", "Value each", "Line total", "Guide low", "Guide high", "How valued", "Acquired / cost", "Acknowledgment", "Receipt files", "Entry notes"];
     const lines = [cols.join(",")];
     [...entries].filter(e => e.kind === "noncash").sort((a, b) => (a.date || "").localeCompare(b.date || "")).forEach(e => (e.items || []).forEach(it => {
       lines.push([e.date, yearOf(e), e.donor, e.org, it.desc, it.category, it.condition, it.qty, num(it.unitValue).toFixed(2), window.Rules.itemValue(it).toFixed(2), isBlank(it.lo) ? "" : it.lo, isBlank(it.hi) ? "" : it.hi, e.howValued || "", e.acquired || "", e.ackReceived ? "Yes" : "No", receiptsFor(e).length, e.notes].map(csvCell).join(","));
@@ -572,7 +584,7 @@
     const checks = years.flatMap(y => { const sy = year === "all" ? summarize(vis.filter(e => yearOf(e) === y)) : s; return [`Filing checklist ${y}:`, ...sy.checklist.map(c => `  [${c.state === "need" ? "!" : c.state === "done" ? "x" : "-"}] ${c.text}`), ""]; });
     return [`DEDUCTBOOK — TAX SUMMARY ${year === "all" ? "(all years)" : year}`, "",
       `Estimated deduction before limits: ${money(s.deductible)} (recorded value ${money(s.gross)})`, ...order.map(k => `  ${KINDS[k].label}: ${money(s.byKind[k])}`), s.needsDocs ? `  Of which still needing records: ${money(s.needsDocs)}` : "", s.notEligible ? `  Recorded but not eligible: ${money(s.notEligible)}` : "", "",
-      "By donor:", ...Object.entries(s.byDonor).map(([k, v]) => `  ${k}: ${money(v)}`), "",
+      "By household member:", ...Object.entries(s.byDonor).map(([k, v]) => `  ${k}: ${money(v)}`), "",
       "By organization:", ...Object.entries(s.byOrg).map(([k, v]) => `  ${k}: ${money(v)}`), "",
       ...checks,
       "Entries:", ...[...vis].sort((a, b) => (a.date || "").localeCompare(b.date || "")).map(e => `  ${e.date}  ${money(ev(e).deductible).padStart(12)}  ${KINDS[e.kind].short.padEnd(8)} ${e.org || ""} — ${describe(e)}`),

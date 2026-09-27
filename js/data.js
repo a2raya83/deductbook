@@ -137,6 +137,7 @@
     return rec;
   }
   function getReceipt(id) { return tx("readonly", s => s.get(id)); }
+  async function fetchBlob(rec) { const r = rec.blob ? rec : await getReceipt(rec.id); if (!r || !r.blob) throw new Error("file not found"); return r.blob; }
   function listReceipts() { return tx("readonly", s => s.getAll()); }
   function deleteReceipt(id) { return tx("readwrite", s => s.delete(id)); }
   async function attachReceipts(ids, entryId) {
@@ -274,5 +275,5 @@
     return removed;
   }
 
-  window.Store = { useNamespace, uid, loadState, saveState, sanitizeEntry, signature, stableStringify, mergeEntries, cleanupOrphans, addReceipt, getReceipt, listReceipts, deleteReceipt, attachReceipts, clearReceipts, exportBackup, importBackup, _test: test };
+  window.Store = { useNamespace, uid, loadState, saveState, sanitizeEntry, signature, stableStringify, mergeEntries, cleanupOrphans, addReceipt, getReceipt, fetchBlob, listReceipts, deleteReceipt, attachReceipts, clearReceipts, exportBackup, importBackup, _test: test };
 })();

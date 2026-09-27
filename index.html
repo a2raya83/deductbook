@@ -45,19 +45,56 @@
     </div>
 
     <!-- A quick illustration of an organized ledger, not the full overview -->
-    <div class="shot" aria-label="Sample ledger preview">
+    <!-- A rotating preview: the ledger, the rules check on one gift, the tax summary -->
+    <div class="shot" id="heroShot" aria-label="Sample ledger preview" aria-roledescription="carousel">
       <div class="shot-bar"><span>Sample ledger · <b>2026</b></span><span class="pill">Saved</span></div>
-      <div class="shot-body">
-        <div>
-          <div class="eyebrow">2026 donations</div>
-          <div class="big">$970.00 <small>recorded</small></div>
+      <div class="shot-slides">
+        <div class="shot-body shot-slide" data-slide="ledger" aria-label="Recent donations">
+          <div>
+            <div class="eyebrow">2026 donations</div>
+            <div class="big">$970.00 <small>recorded</small></div>
+          </div>
+          <div class="recent">
+            <div class="recent-item"><div class="thumb-sm"><div class="receipt-swatch"></div></div><div class="who"><b>Greater Lakes Food Bank</b><span>Cash · Jan 14 · <em class="by">Joint</em></span></div><div class="amt">$500.00</div></div>
+            <div class="recent-item"><div class="thumb-sm"><div class="receipt-swatch"></div></div><div class="who"><b>Goodwill Industries</b><span>Goods · Apr 18 · <em class="by">David</em></span></div><div class="amt">$170.00</div></div>
+            <div class="recent-item"><div class="thumb-sm">—</div><div class="who"><b>Riverside Arts Center</b><span>Cash · May 9 · <em class="by">Joint</em></span></div><div class="amt">$300.00</div></div>
+          </div>
+          <div class="shot-note"><span class="dot-note"></span>1 record to add</div>
         </div>
-        <div class="recent">
-          <div class="recent-item"><div class="thumb-sm"><div class="receipt-swatch"></div></div><div class="who"><b>Greater Lakes Food Bank</b><span>Cash · Jan 14</span></div><div class="amt">$500.00</div></div>
-          <div class="recent-item"><div class="thumb-sm"><div class="receipt-swatch"></div></div><div class="who"><b>Goodwill Industries</b><span>Goods · Apr 18</span></div><div class="amt">$170.00</div></div>
-          <div class="recent-item"><div class="thumb-sm">—</div><div class="who"><b>Riverside Arts Center</b><span>Cash · May 9</span></div><div class="amt">$300.00</div></div>
+        <div class="shot-body shot-slide" data-slide="check" aria-label="Deduction check" hidden>
+          <div>
+            <div class="eyebrow">Deduction check · Riverside Arts Center</div>
+            <div class="big">$180.00 <small>of $300.00 recorded</small></div>
+            <div class="caption">Spring gala · two dinner tickets valued at $60 each</div>
+          </div>
+          <div class="flags">
+            <div class="flag limit"><span>You received $120.00 in goods or services. Only the excess, $180.00, is deductible.</span></div>
+            <div class="flag docs"><span>Gift of $300 is $250 or more: a written acknowledgment from the charity is needed before you file.</span></div>
+            <div class="flag info"><span>Over $75 with something in return: the charity must give you a written disclosure. Keep it.</span></div>
+          </div>
+          <div class="caption">Checked against IRS Publication 526 as you type.</div>
         </div>
-        <div class="shot-note"><span class="dot-note"></span>1 record to add</div>
+        <div class="shot-body shot-slide" data-slide="summary" aria-label="Tax summary" hidden>
+          <div>
+            <div class="eyebrow">Tax summary · 2026</div>
+            <div class="big">$5,749.66 <small>estimated deduction before limits</small></div>
+          </div>
+          <dl class="kv small-kv">
+            <dt>Cash / check / card</dt><dd>$820.00</dd>
+            <dt>Goods &amp; stock</dt><dd>$4,370.00</dd>
+            <dt>Volunteer mileage &amp; expenses</dt><dd>$559.66</dd>
+          </dl>
+          <div class="checklist">
+            <div class="item"><span class="mk need">!</span><span>Form 8283 Section A: goods and stock over $500</span></div>
+            <div class="item"><span class="mk need">!</span><span>1 gift of $250 or more still needs an acknowledgment</span></div>
+            <div class="item"><span class="mk done">✓</span><span>Mileage log complete: 79 miles at 14¢</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="shot-dots" role="tablist" aria-label="Preview pages">
+        <button type="button" role="tab" aria-selected="true" data-go="ledger">Ledger</button>
+        <button type="button" role="tab" aria-selected="false" data-go="check">Rules check</button>
+        <button type="button" role="tab" aria-selected="false" data-go="summary">Tax summary</button>
       </div>
     </div>
   </section>
@@ -67,7 +104,7 @@
     <div class="steps" style="margin-top:22px">
       <div class="step"><div class="n">1</div><h3>Record the donation</h3><p>Money, goods, stock, mileage or an out-of-pocket volunteer cost. A value guide prices donated goods at thrift-store fair market value.</p></div>
       <div class="step"><div class="n">2</div><h3>Attach the receipt</h3><p>Snap the receipt or the charity's letter. DeductBook tells you when a gift of $250 or more still needs a written acknowledgment, and when goods over $500 need Form 8283.</p></div>
-      <div class="step"><div class="n">3</div><h3>Hand over the summary</h3><p>Totals by type, donor and organization, a filing checklist, and a CSV your preparer can open. Every entry shows whether its records are complete.</p></div>
+      <div class="step"><div class="n">3</div><h3>Hand over the summary</h3><p>Totals by type, household member and organization, a filing checklist, and a CSV your preparer can open. Every entry shows whether its records are complete.</p></div>
     </div>
   </section>
 
@@ -102,6 +139,16 @@
         </div>
         <div class="doc-foot">Exports: entry CSV · itemized goods CSV · copy as text</div>
       </div>
+    </div>
+  </section>
+
+  <section id="rules">
+    <div class="section-head"><h2 class="serif">Every entry is checked against the IRS rules</h2><p>As you type, DeductBook reads what you entered against Publication 526 and tells you what counts, what gets reduced, and which record you still need. Plain English, with the reason.</p></div>
+    <div class="rule-examples">
+      <div class="rule-example"><div class="flag docs"><span><b>$250 gift, no letter yet.</b> Acknowledgment needed before you file. We say what the letter has to state.</span></div></div>
+      <div class="rule-example"><div class="flag limit"><span><b>Gala tickets worth $120.</b> The value you received is subtracted, so $300 becomes $180.</span></div></div>
+      <div class="rule-example"><div class="flag stop"><span><b>Lunch after a local volunteer shift.</b> Not deductible, and excluded from the estimate. Meals on an overnight trip for the charity do count.</span></div></div>
+      <div class="rule-example"><div class="flag info"><span><b>$6,000 of similar donated items across two charities.</b> Over $5,000 for the year means a qualified appraisal and Form 8283 Section B.</span></div></div>
     </div>
   </section>
 
@@ -189,6 +236,19 @@
     document.querySelectorAll('[data-cloud="off"]').forEach(function (el) { el.hidden = on; });
     document.querySelectorAll('[data-cloud="label"]').forEach(function (el) { if (!on) el.textContent = el.textContent + " (coming soon)"; });
   })();
+</script>
+<script>
+(function shotRotate() {
+  var shot = document.getElementById("heroShot"); if (!shot) return;
+  var slides = shot.querySelectorAll(".shot-slide"), dots = shot.querySelectorAll(".shot-dots button"), i = 0, timer = null;
+  function show(n) { i = n; slides.forEach(function (s, k) { s.hidden = k !== n; }); dots.forEach(function (d, k) { d.setAttribute("aria-selected", String(k === n)); }); }
+  function start() { stop(); timer = setInterval(function () { show((i + 1) % slides.length); }, 6000); }
+  function stop() { if (timer) clearInterval(timer); timer = null; }
+  dots.forEach(function (d, k) { d.addEventListener("click", function () { show(k); start(); }); });
+  shot.addEventListener("mouseenter", stop); shot.addEventListener("mouseleave", start);
+  shot.addEventListener("focusin", stop); shot.addEventListener("focusout", start);
+  if (!window.matchMedia || !window.matchMedia("(prefers-reduced-motion: reduce)").matches) start();
+})();
 </script>
 </body>
 </html>

@@ -81,7 +81,7 @@
         <div class="segmented" id="kindPicker"></div>
       </div>
       <div class="field w3"><label for="f_date">Date</label><input type="date" id="f_date" required></div>
-      <div class="field w3"><label for="f_donor">Donor</label><input type="text" id="f_donor" list="donorList" placeholder="e.g. Maria, Joint"><datalist id="donorList"></datalist></div>
+      <div class="field w3"><label for="f_donor">Given by</label><input type="text" id="f_donor" list="donorList" placeholder="e.g. Maria, David, Joint"><span class="hint">Which household member gave it. Use Joint for shared gifts.</span><datalist id="donorList"></datalist></div>
       <div class="field w6" data-kinds="cash noncash stock mileage expense"><label for="f_org">Organization</label><input type="text" id="f_org" list="orgList" placeholder="Full legal name of the charity"><datalist id="orgList"></datalist><span class="hint">Must be a qualified 501(c)(3). <a href="https://apps.irs.gov/app/eos/" target="_blank" rel="noopener">Look it up</a></span></div>
 
       <div class="form-section">Details</div>
@@ -139,7 +139,7 @@
       <div class="field w12">
         <label>Receipts, acknowledgment letters, photos</label>
         <label class="drop" id="dropZone" for="f_files">Drop files here, or tap to choose (photos or PDF). On a phone this opens the camera.</label>
-        <input type="file" id="f_files" accept="image/*,application/pdf" multiple hidden>
+        <input type="file" id="f_files" accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.eml,.heic,.heif" multiple hidden>
         <div class="thumbs" id="thumbs"></div>
       </div>
     </div>
@@ -164,9 +164,9 @@
         </div>
       </div>
       <div class="filters">
-        <input type="search" id="searchBox" placeholder="Search organization, notes, donor…" aria-label="Search entries">
+        <input type="search" id="searchBox" placeholder="Search organization, notes, member…" aria-label="Search entries">
         <select id="kindFilter" aria-label="Filter by type"><option value="">All types</option></select>
-        <select id="donorFilter" aria-label="Filter by donor"><option value="">All donors</option></select>
+        <select id="donorFilter" aria-label="Filter by household member"><option value="">Everyone</option></select>
       </div>
       <div class="table-wrap" id="ledgerTable"></div>
     </div>
@@ -207,7 +207,7 @@
   <section class="view" id="view-receipts" hidden>
     <div class="view-head">
       <div><h2>Receipts &amp; acknowledgments</h2><p>Every photo, PDF or letter you've attached, in one place. Attach files from the donation form, or drop them here and link them later.</p></div>
-      <label class="btn">Add receipts <input type="file" id="looseReceipts" accept="image/*,application/pdf" multiple hidden></label>
+      <label class="btn">Add receipts <input type="file" id="looseReceipts" accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.eml,.heic,.heif" multiple hidden></label>
     </div>
     <div class="card" id="missingReceipts"></div>
     <div class="card">
