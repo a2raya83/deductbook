@@ -10,7 +10,7 @@ until every line passes.
 1. Create the test project at supabase.com.
 2. SQL Editor → paste and run `supabase/schema.sql`. It should finish with no errors.
 3. Authentication → URL Configuration: Site URL and redirect list include where you'll open the
-   app (for local testing `http://localhost:8765`, for the live site `https://a2raya83.github.io/giving-ledger/`).
+   app (for local testing `http://localhost:8765`, for the live site `https://deductbook.com/**` and `https://www.deductbook.com/**`).
 4. Authentication → SMTP Settings: custom SMTP on, with a verified sender (Resend). Without this,
    magic links only reach your own team's addresses.
 5. Project Settings → API Keys: copy the Project URL and the publishable (or legacy anon) key into
@@ -94,6 +94,9 @@ Still open:
 - Offline edit → reconnect was not exercised against the real backend (covered by the fake-client
   suite only).
 - The canceled-plan retention check needs the secret key on your own terminal.
+- deductbook.com is the custom domain (Cloudflare DNS, GitHub Pages, 2026-09-27). The test project's
+  redirect list now includes `https://deductbook.com/**` and `https://www.deductbook.com/**`.
+  Sign-in from the live domain is untested until email delivery works.
 
 ## 3. Then
 

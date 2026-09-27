@@ -1,6 +1,6 @@
 # DeductBook
 
-Live site: https://a2raya83.github.io/giving-ledger/ (landing page; the app is at /app.html) · Source: https://github.com/a2raya83/giving-ledger
+Live site: https://deductbook.com (landing page; the app is at https://deductbook.com/app.html) · Source: https://github.com/a2raya83/deductbook
 
 DeductBook: charitable donations, organized for tax time. A public, static web app for tracking charitable donations the way the IRS expects:
 cash gifts, donated goods with fair-market-value guidance, gifts of stock, volunteer
@@ -51,7 +51,7 @@ Then open http://localhost:8765. Any static server works; the app has no build s
 **GitHub Pages**
 1. Create a repository and push this folder (skip `serve.js` and `.claude/` if you like).
 2. Settings → Pages → Source: "Deploy from a branch", branch `main`, folder `/ (root)`.
-3. The site appears at `https://<you>.github.io/<repo>/`.
+3. The site appears at `https://<you>.github.io/<repo>/`. For a custom domain, add a `CNAME` file with the bare domain (this repo uses `deductbook.com`), point the apex A records at GitHub Pages and `www` at `<you>.github.io`, then enable "Enforce HTTPS" once the certificate is issued.
 
 **Netlify or Cloudflare Pages**
 Drag the folder onto the Netlify dashboard, or connect the repo. No build command, publish directory `/`.
@@ -69,7 +69,7 @@ accountant. Setup takes about ten minutes:
    `supabase/schema.sql`. It creates the tables, the row-level-security policies, the private
    `receipts` storage bucket, and the helper functions.
 2. In **Authentication → URL Configuration**, set the Site URL to where the app is hosted (for
-   example `https://a2raya83.github.io/giving-ledger/`) and add it to the redirect allow list.
+   example `https://deductbook.com/`) and add it and `https://www.deductbook.com/**` to the redirect allow list.
    Magic-link email sign-in is on by default; no password provider is needed.
 3. **Email delivery (required for public sign-in).** Supabase's built-in email sender only delivers
    to your own project team and is for testing. In **Authentication → SMTP Settings**, enable custom
