@@ -257,6 +257,7 @@ create or replace function public.record_sign_in(p_agent text default null)
 returns void language plpgsql security definer set search_path = public as $$
 begin
   if auth.uid() is null then return; end if;
+  perform pg_advisory_xact_lock(hashtext(auth.uid()::text));   -- two page loads at once still record one visit
   if exists (select 1 from public.sign_ins s where s.user_id = auth.uid() and s.at > now() - interval '30 minutes') then return; end if;
   insert into public.sign_ins(user_id, agent) values (auth.uid(), left(p_agent, 200));
 end $$;

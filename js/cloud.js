@@ -33,7 +33,6 @@
       const was = !!session; session = s;
       if (!!s !== was || prevId !== nextId) handlers.onAuth(Cloud.user());
     });
-    if (session && session.user) sb.rpc("record_sign_in", { p_agent: navigator.userAgent }).then(() => {}, () => {});
     handlers.onAuth(Cloud.user());
     return Cloud.user();
   };

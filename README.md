@@ -58,6 +58,13 @@ Drag the folder onto the Netlify dashboard, or connect the repo. No build comman
 
 Add a custom domain from either dashboard when you're ready.
 
+## Admin overview
+
+`admin.html` shows sign-ups, visits, households, member roles and storage per account, for abuse review. It
+never returns amounts, organizations or receipt contents. Access uses the normal email sign-in; only users
+listed in `public.admins` get data (`insert into public.admins(user_id) select id from auth.users where email = '...';`).
+Visits are recorded by the app through `record_sign_in()` at most once per half hour per user.
+
 ## Accounts and household ledgers
 
 Production project: `deductbook` (ref wmrzuqamnnsurubalfqb), configured in `js/config.js`. The separate test
