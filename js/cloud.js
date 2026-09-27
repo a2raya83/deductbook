@@ -25,12 +25,15 @@
     const { data } = await sb.auth.getSession();
     session = data.session || null;
     sb.auth.onAuthStateChange((_event, s) => {
+      // Activity for the admin overview: a visit is recorded when a session opens (deduplicated server-side).
+      if (s && s.user && (_event === "SIGNED_IN" || _event === "INITIAL_SESSION")) sb.rpc("record_sign_in", { p_agent: navigator.userAgent }).then(() => {}, () => {});
       const prevId = session && session.user ? session.user.id : null;
       const nextId = s && s.user ? s.user.id : null;
       if (prevId !== nextId) newGeneration();   // pending work belongs to the previous user; park it under their key
       const was = !!session; session = s;
       if (!!s !== was || prevId !== nextId) handlers.onAuth(Cloud.user());
     });
+    if (session && session.user) sb.rpc("record_sign_in", { p_agent: navigator.userAgent }).then(() => {}, () => {});
     handlers.onAuth(Cloud.user());
     return Cloud.user();
   };

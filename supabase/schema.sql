@@ -242,11 +242,29 @@ returns boolean language sql stable security definer set search_path = public as
 $$;
 -- Account overview for fraud and abuse review: who signed up, when they last signed in, how much they
 -- store. Amounts, organizations and receipt contents are never returned.
+-- Visits: one row per user per half hour, written by the app when a session opens. The auth audit
+-- log is not readable on current projects, so activity is tracked here for the admin overview.
+create table if not exists public.sign_ins (
+  id      bigserial primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  at      timestamptz not null default now(),
+  agent   text
+);
+create index if not exists sign_ins_user_idx on public.sign_ins(user_id, at desc);
+alter table public.sign_ins enable row level security;
+-- No client policies: rows are written through record_sign_in() and read through admin_users() only.
+create or replace function public.record_sign_in(p_agent text default null)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then return; end if;
+  if exists (select 1 from public.sign_ins s where s.user_id = auth.uid() and s.at > now() - interval '30 minutes') then return; end if;
+  insert into public.sign_ins(user_id, agent) values (auth.uid(), left(p_agent, 200));
+end $$;
 create or replace function public.admin_users()
 returns table (user_id uuid, email text, created_at timestamptz, last_sign_in_at timestamptz, sign_ins_30d bigint, households bigint, entries bigint, receipts bigint)
 language sql stable security definer set search_path = public as $$
   select u.id, u.email::text, u.created_at, u.last_sign_in_at,
-    (select count(*) from auth.audit_log_entries l where l.created_at > now() - interval '30 days' and l.payload->>'action' = 'login' and l.payload->>'actor_id' = u.id::text),
+    (select count(*) from public.sign_ins s where s.user_id = u.id and s.at > now() - interval '30 days'),
     (select count(*) from public.household_members m where m.user_id = u.id),
     (select count(*) from public.entries e join public.household_members m on m.household_id = e.household_id where m.user_id = u.id),
     (select count(*) from public.receipts r join public.household_members m on m.household_id = r.household_id where m.user_id = u.id)
