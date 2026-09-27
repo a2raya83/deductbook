@@ -20,8 +20,8 @@ window.SITE_CONFIG = {
   // Links open in a new tab. Nothing is gated behind it.
   support: {
     enabled: false,
-    heading: "Support Giving Ledger",
-    message: "Giving Ledger is free and stores nothing on a server. If it saved you time at tax season, a tip of any size keeps it online — entirely optional.",
+    heading: "Support DeductBook",
+    message: "DeductBook is free to use. If it saved you time at tax season, a tip of any size keeps it online — entirely optional.",
     footer: "Free to use. If it helped, a small tip keeps it running.",
     links: [
       // { label: "Buy me a coffee", url: "https://buymeacoffee.com/yourname" },

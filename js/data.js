@@ -157,7 +157,7 @@
     const out = [];
     for (const r of receipts) out.push({ id: r.id, entryId: r.entryId, name: r.name, type: r.type, size: r.size, addedAt: r.addedAt, data: await blobToDataUrl(r.blob) });
     const missing = [...referenced].filter(id => !receipts.some(r => r.id === id));
-    return { app: "giving-ledger", version: 2, exportedAt: new Date().toISOString(), counts: { entries: state.entries.length, receipts: out.length, missingReceiptFiles: missing.length }, entries: state.entries, settings: state.settings || {}, receipts: out };
+    return { app: "deductbook", version: 2, exportedAt: new Date().toISOString(), counts: { entries: state.entries.length, receipts: out.length, missingReceiptFiles: missing.length }, entries: state.entries, settings: state.settings || {}, receipts: out };
   }
 
   // Merge incoming entries into existing ones without losing anything:
@@ -187,7 +187,7 @@
   // If 2 or 3 fails, receipt writes are rolled back and the original ledger is untouched.
   // Returns { added, updated, skipped, conflicts, rejected, receiptsAdded, receiptsFailed, staleRemoved, staleRemoveFailed }
   async function importBackup(json, state, mode, commit) {
-    if (!json || typeof json !== "object" || json.app !== "giving-ledger" || !Array.isArray(json.entries)) throw new Error("That isn't a Giving Ledger backup file.");
+    if (!json || typeof json !== "object" || !["deductbook", "giving-ledger"].includes(json.app) || !Array.isArray(json.entries)) throw new Error("That isn't a DeductBook backup file.");
     const incoming = json.entries.map(sanitizeEntry).filter(Boolean);
     const rejected = json.entries.length - incoming.length;
     const staged = []; const failed = [];

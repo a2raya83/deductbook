@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>DeductBook — cloud test harness</title>
+<title>DeductBook</title>
 <meta name="description" content="Charitable donations, organized for tax time. Track gifts, item values, volunteer costs and receipts, and prepare a clear summary for your return.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23176b60' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 4.5A1.5 1.5 0 0 1 6.5 3H19v16H6.5A1.5 1.5 0 0 0 5 20.5z'/%3E%3Cpath d='M5 20.5V4.5'/%3E%3Cpath d='M14 3v8l-2.2-1.5L9.6 11V3'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap">
-<link rel="stylesheet" href="../css/app.css">
+<link rel="stylesheet" href="css/app.css">
 </head>
 <body>
 
@@ -309,27 +309,13 @@
   <p>DeductBook organizes records and explains IRS rules in plain English. It is not tax advice. Confirm deductions with a qualified preparer.</p>
 </footer>
 
-<script src="fake-supabase.js"></script>
-<script>
-  // Test harness: a fake Supabase client stands in for the real one. Nothing leaves this page.
-  window.FAKE = window.FakeSupabase.createFake();
-  window.supabase = { createClient: () => window.FAKE.client };
-  window.SITE_CONFIG = { cloud: { url: "https://fake.supabase.co", anonKey: "fake" }, plans: { betaFree: true, intendedPrice: "$19/year" }, support: { enabled: false, links: [] } };
-  // The fake server lives in memory: a test that reloads the page re-seeds it from sessionStorage.
-  try {
-    const seed = JSON.parse(sessionStorage.getItem("gl_cloud_seed") || "null");
-    if (seed) {
-      window.FAKE.seedHousehold(seed.hh, seed.name || "Alice household", [[seed.user || "user-alice", "owner"]]);
-      (seed.entries || []).forEach(r => window.FAKE.tables.entries.set(r.id, r));
-      window.FAKE.session = { user: { id: seed.user || "user-alice", email: (seed.user || "user-alice") + "@example.test" } };
-      sessionStorage.removeItem("gl_cloud_seed");
-    }
-  } catch (e) {}
-</script>
-<script src="../js/fmv.js"></script>
-<script src="../js/rules.js"></script>
-<script src="../js/data.js"></script>
-<script src="../js/cloud.js"></script>
-<script src="../js/app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/config.local.js"></script><!-- optional, git-ignored: local overrides such as a TEST project's cloud keys; 404s harmlessly when absent -->
+<script src="js/fmv.js"></script>
+<script src="js/rules.js"></script>
+<script src="js/data.js"></script>
+<script src="js/cloud.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>

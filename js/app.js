@@ -84,7 +84,9 @@
     if (e.kind === "expense") return `${(EXP[e.expenseCategory] || EXP.other).label}${e.expenseDesc ? " · " + e.expenseDesc : ""}`;
     return e.method ? ({ card: "Card", check: "Check" + (e.checkNo ? " #" + e.checkNo : ""), online: "Online", bank: "Bank transfer", payroll: "Payroll", text: "Text gift", cash: "Cash", other: "" }[e.method] || "") : "";
   };
-  const statusBadge = r => r.status === "stop" ? `<span class="badge stop">Not eligible</span>` : r.status === "docs" ? `<span class="badge docs">Documentation needed</span>` : `<span class="badge ok">Records OK</span>`;
+  // Documentation status, named after what is actually missing so the badge is an instruction.
+  const docsLabel = r => { const f = r.flags.find(x => x.level === "docs") || {}; const t = (f.text || "").toLowerCase(); return /acknowledgment/.test(t) ? "Acknowledgment needed" : /receipt|record on file|bank record/.test(t) ? "Receipt needed" : /basis/.test(t) ? "Cost basis needed" : /organization/.test(t) ? "Organization missing" : /appraisal/.test(t) ? "Appraisal needed" : /1098-C/.test(t) ? "Form 1098-C needed" : "Documentation needed"; };
+  const statusBadge = r => r.status === "stop" ? `<span class="badge stop">Not eligible</span>` : r.status === "docs" ? `<span class="badge docs">${docsLabel(r)}</span>` : `<span class="badge ok">Records OK</span>`;
   const yearLabel = () => year === "all" ? "all years" : year;
 
   /* ---------- year picker ---------- */
@@ -101,9 +103,9 @@
   function showView(v) {
     currentView = v;
     document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", String(t.dataset.view === v)));
-    ["ledger", "volunteer", "guide", "receipts", "summary", "rules"].forEach(id => { $("view-" + id).hidden = id !== v; });
-    if (v === "ledger") mountForm("formMount", ["cash", "noncash", "stock"]);
-    if (v === "volunteer") mountForm("volFormMount", ["mileage", "expense"]);
+    ["overview", "ledger", "guide", "receipts", "summary", "rules"].forEach(id => { $("view-" + id).hidden = id !== v; });
+    if (v === "ledger") mountForm("formMount", ["cash", "noncash", "stock", "mileage", "expense"]);
+    if (v === "overview") renderOverview();
     if (location.hash !== "#" + v) history.replaceState(null, "", "#" + v);
     window.scrollTo({ top: 0 });
   }
@@ -118,7 +120,7 @@
 
   /* ---------- entry form ---------- */
   const form = $("entryForm");
-  let allowedKinds = ["cash", "noncash", "stock"];
+  let allowedKinds = ["cash", "noncash", "stock", "mileage", "expense"];
   function mountForm(slotId, kinds) {
     allowedKinds = kinds;
     if (form.parentElement !== $(slotId)) $(slotId).appendChild(form);
@@ -208,7 +210,7 @@
     if (e.kind === "stock") { $("f_amount_stock").value = e.amount || ""; $("f_ticker").value = (e.stock || {}).ticker || ""; $("f_costBasis").value = isBlank((e.stock || {}).costBasis) ? "" : e.stock.costBasis; $("f_longTerm").checked = (e.stock || {}).longTerm !== false; }
     if (e.kind === "mileage") { $("f_miles").value = e.miles || ""; $("f_parkingTolls").value = e.parkingTolls || ""; $("f_route").value = e.route || ""; $("f_purpose").value = e.purpose || ""; }
     if (e.kind === "expense") { $("f_amount_expense").value = e.amount || ""; $("f_expenseCategory").value = e.expenseCategory || "other"; $("f_expenseDesc").value = e.expenseDesc || ""; $("f_reimbursed").checked = !!e.reimbursed; $("f_awayOvernight").checked = !!e.awayOvernight; $("f_personalPleasure").checked = !!e.personalPleasure; $("f_companions").checked = !!e.companions; $("f_uniformNoGeneralUse").checked = !!e.uniformNoGeneralUse; $("f_delegate").checked = !!e.delegate; updateExpenseVisibility(); }
-    $("formTitle").textContent = e.conflictOf ? "Edit imported copy (import conflict)" : "Edit entry"; $("volFormTitle").textContent = e.conflictOf ? "Edit imported copy (import conflict)" : "Edit entry"; $("cancelEdit").hidden = false; $("saveBtn").textContent = "Save changes";
+    $("formTitle").textContent = e.conflictOf ? "Edit imported copy (import conflict)" : "Edit donation"; $("cancelEdit").hidden = false; $("saveBtn").textContent = "Save changes";
     if (e.conflictOf) $("saveHint").textContent = "This is the imported copy of a conflict. It stays uncounted until you choose Keep this or Keep mine in the ledger.";
     renderThumbs(); updateInsight();
     form.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -224,7 +226,7 @@
     $("f_date").value = keepDate && d ? d : new Date().toISOString().slice(0, 10);
     $("f_bankRecord").checked = true; $("f_longTerm").checked = true;
     $("itemRows").innerHTML = ""; if (currentKind === "noncash") addItemRow();
-    $("formTitle").textContent = "Record a gift"; $("volFormTitle").textContent = "Log a trip or expense"; $("cancelEdit").hidden = true; $("saveBtn").textContent = "Save to ledger"; $("saveHint").textContent = "";
+    $("formTitle").textContent = "Record a donation"; $("cancelEdit").hidden = true; $("saveBtn").textContent = "Save donation"; $("saveHint").textContent = "";
     recalcItems(); renderThumbs(); updateExpenseVisibility(); updateInsight();
   }
   $("resetBtn").addEventListener("click", () => resetForm());
@@ -316,7 +318,7 @@
     if (yearOf(e) !== year && year !== "all") year = yearOf(e);
     persist(); const k = e.kind; await resetForm(); setKind(k); renderAll();
     const r = ev2(e);
-    toast(idx >= 0 ? "Entry updated" : r.status === "stop" ? "Saved — not eligible as entered (see status)" : r.status === "docs" ? "Saved — documentation still needed" : "Saved to the ledger");
+    toast(idx >= 0 ? "Entry updated" : r.status === "stop" ? "Saved — not eligible as entered (see status)" : r.status === "docs" ? "Saved — documentation still needed" : "Donation saved");
   });
   const ev2 = e => ev(e);
 
@@ -339,7 +341,7 @@
     container.innerHTML = `<table><thead><tr><th>Date</th><th>Organization</th><th>Donor</th><th>Type</th><th>Status</th><th class="r">Deductible</th><th></th></tr></thead><tbody>${sorted.map(entryRow).join("")}</tbody></table>`;
     container.querySelectorAll("[data-act]").forEach(b => b.addEventListener("click", () => {
       const id = b.closest("tr").dataset.id; const e = state.entries.find(x => x.id === id); if (!e) return;
-      if (b.dataset.act === "edit") { showView(["mileage", "expense"].includes(e.kind) ? "volunteer" : "ledger"); fillForm(e); }
+      if (b.dataset.act === "edit") { showView("ledger"); fillForm(e); }
       else if (b.dataset.act === "keep" || b.dataset.act === "discard") resolveConflict(e, b.dataset.act === "keep");
       else if (b.dataset.confirm) deleteEntry(e);
       else { b.dataset.confirm = "1"; b.textContent = "Confirm delete"; setTimeout(() => { delete b.dataset.confirm; b.textContent = "Delete"; }, 3500); }
@@ -397,20 +399,37 @@
   }
   ["searchBox", "kindFilter", "donorFilter"].forEach(id => $(id).addEventListener("input", renderLedger));
 
-  function renderVolunteer() {
-    const vis = visibleEntries().filter(e => e.kind === "mileage" || e.kind === "expense");
-    const miles = vis.filter(isCountable).reduce((t, e) => t + (e.kind === "mileage" ? num(e.miles) : 0), 0);
-    const s = summarize(vis);
-    const notDed = vis.filter(e => isCountable(e) && ev(e).status === "stop").length;
-    $("volunteerStats").innerHTML = `
-      <div class="stat hero"><div class="label">Volunteer deduction · ${yearLabel()}</div><div class="value">${money(s.byKind.mileage + s.byKind.expense)}</div><div class="sub">Goes on Schedule A with cash gifts</div></div>
-      <div class="stat"><div class="label">Miles driven</div><div class="value num">${miles.toLocaleString()}</div><div class="sub">× 14¢ = ${money(miles * RULES.MILEAGE_RATE)}</div></div>
-      <div class="stat"><div class="label">Out-of-pocket expenses</div><div class="value">${money(s.byKind.expense)}</div><div class="sub">${vis.filter(e => e.kind === "expense").length} items</div></div>
-      <div class="stat ${notDed ? "attention" : ""}"><div class="label">Logged but not eligible</div><div class="value">${notDed}</div><div class="sub">${notDed ? "Kept for your records" : "Everything counts"}</div></div>`;
-    renderTable($("volunteerTable"), vis, `<h3>No trips or expenses for ${yearLabel()}.</h3><p>Log a delivery route, a supply run, or a conference trip above.</p>`);
-    $("countVolunteer").textContent = vis.length;
+  function renderOverview() {
+    const vis = visibleEntries(); const cnt = vis.filter(isCountable); const s = summarize(vis);
+    const user = Cloud.configured ? Cloud.user() : null;
+    $("overviewHero").innerHTML = `<div class="eyebrow">Deductible so far · ${yearLabel()}</div>
+      <div class="big">${money(s.deductible)}</div>
+      <div class="caption">${cnt.length} donation${cnt.length === 1 ? "" : "s"} · recorded ${money(s.gross)}${s.needsDocs ? ` · ${money(s.needsDocs)} needs documentation` : ""}${s.notEligible ? ` · ${money(s.notEligible)} not eligible` : ""}</div>
+      <div class="row"><span>Cash <b>${money(s.cash)}</b></span><span>Goods &amp; stock <b>${money(s.noncash)}</b></span><span>Volunteer costs <b>${money(s.volunteer)}</b></span></div>
+      <div class="actions"><button class="btn primary" type="button" data-go="summary">View tax summary</button><button class="btn" type="button" data-go="ledger">Add donation</button></div>`;
+    // needs attention: the specific record that's missing, with the action that fixes it
+    const attention = cnt.map(e => ({ e, r: ev(e) })).filter(x => x.r.status !== "ok").sort((a, b) => b.r.gross - a.r.gross);
+    const conflicts = vis.filter(e => !isCountable(e)).length;
+    $("overviewAttention").innerHTML = `<div class="card-head" style="margin-bottom:10px"><div><h3>Needs attention</h3><p>${attention.length || conflicts ? "Fix these before you file." : "Every record is complete."}</p></div></div>
+      <div class="attention-list">${conflicts ? `<div class="attention-item"><div class="what"><b>${conflicts} import conflict${conflicts > 1 ? "s" : ""}</b><span>Both versions kept; choose one in Donations</span></div><button class="btn sm" type="button" data-go="ledger">Review</button></div>` : ""}
+      ${attention.slice(0, 5).map(({ e, r }) => `<div class="attention-item"><div class="what"><b>${esc(e.org || describe(e))} · ${money(r.status === "stop" ? r.gross : r.deductible)}</b><span>${r.status === "stop" ? "Not eligible: " + esc((r.flags.find(f => f.level === "stop") || {}).text || "").split(".")[0].toLowerCase() : docsLabel(r)}</span></div><button class="btn sm" type="button" data-edit="${esc(e.id)}">${r.status === "stop" ? "Review" : "Add record"}</button></div>`).join("")}
+      ${attention.length > 5 ? `<p class="small muted">and ${attention.length - 5} more in Donations</p>` : ""}
+      ${!attention.length && !conflicts ? `<div class="flag ok"><span>Nothing outstanding for ${yearLabel()}.</span></div>` : ""}</div>`;
+    // next steps: what to do now
+    const steps = [];
+    if (!cnt.length) steps.push(["Record your first donation", "Money, goods, stock or a volunteer cost. Takes a minute.", "ledger"]);
+    if (attention.length) steps.push([`Resolve ${attention.length} item${attention.length > 1 ? "s" : ""} needing records`, "Acknowledgment letters and receipts, while the charity can still send them.", "ledger"]);
+    if (Cloud.configured && !user) steps.push(["Sign in to keep records across devices", "And share the ledger with your household.", "signin"]);
+    if (cnt.length && !attention.length) steps.push(["Attach receipts you haven't yet", "Photos travel with the backup and the household ledger.", "receipts"]);
+    steps.push(["Export the tax summary for your preparer", "Totals, filing checklist and a CSV of every donation.", "summary"]);
+    $("overviewNext").innerHTML = `<div class="card-head" style="margin-bottom:10px"><div><h3>Next steps</h3></div></div><div class="next-steps">${steps.slice(0, 3).map(([t, d, go], i) => `<button class="next-step" type="button" data-go="${go}" style="text-align:left;cursor:pointer"><span class="n">${i + 1}</span><span class="t">${t}<span>${d}</span></span></button>`).join("")}</div>`;
+    // recent donations with receipt thumbnails
+    const recent = [...cnt].sort((a, b) => (b.date || "").localeCompare(a.date || "") || (b.createdAt || "").localeCompare(a.createdAt || "")).slice(0, 5);
+    $("overviewRecent").innerHTML = `<div class="card-head" style="margin-bottom:6px"><div><h3>Recent donations</h3></div><button class="btn sm link" type="button" data-go="ledger">All donations</button></div>
+      <div class="recent">${recent.length ? recent.map(e => { const recs = receiptsFor(e); const img = recs.find(r => r.type.startsWith("image/")); const r = ev(e); return `<div class="recent-item"><div class="thumb-sm">${img ? `<img src="${urlFor(img)}" alt="">` : recs.length ? "PDF" : "—"}</div><div class="who"><b>${esc(e.org || describe(e))}</b><span>${fmtDate(e.date)} · ${esc(describe(e)).slice(0, 60)}${recs.length ? " · receipt attached" : ""}</span></div><div class="amt">${money(r.deductible)}</div></div>`; }).join("") : `<p class="small muted">No donations recorded for ${yearLabel()} yet.</p>`}</div>`;
+    $("view-overview").querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => { if (b.dataset.go === "signin") { accountModal(); return; } showView(b.dataset.go); if (b.dataset.go === "ledger" && b.textContent.trim() === "Add donation") form.scrollIntoView({ behavior: "smooth", block: "start" }); }));
+    $("view-overview").querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => { const e = state.entries.find(x => x.id === b.dataset.edit); if (e) { showView("ledger"); fillForm(e); } }));
   }
-
   /* ---------- value guide ---------- */
   $("guideCat").innerHTML += window.FMV_GUIDE.map(g => `<option>${esc(g.cat)}</option>`).join("");
   function renderGuide() {
@@ -438,7 +457,7 @@
     $("missingReceipts").innerHTML = missing.length ? `<div class="card-head"><div><h3>${missing.length} entr${missing.length === 1 ? "y" : "ies"} without a receipt</h3><p>Attach a photo of the receipt or the charity's letter so the record is complete.</p></div></div>
       <div class="flags">${missing.map(e => `<div class="flag warn"><span><b>${fmtDate(e.date)}</b> · ${esc(e.org || describe(e))} · ${money(ev(e).deductible)}</span><button class="btn sm" type="button" data-edit="${esc(e.id)}" style="margin-left:auto">Attach</button></div>`).join("")}</div>`
       : `<div class="flag ok"><span>Every deductible entry for ${yearLabel()} has a receipt, bank record or acknowledgment.</span></div>`;
-    $("missingReceipts").querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => { const e = state.entries.find(x => x.id === b.dataset.edit); showView(["mileage", "expense"].includes(e.kind) ? "volunteer" : "ledger"); fillForm(e); }));
+    $("missingReceipts").querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => { const e = state.entries.find(x => x.id === b.dataset.edit); showView("ledger"); fillForm(e); }));
     const total = receiptsCache.reduce((t, r) => t + (r.size || 0), 0);
     $("receiptStorage").textContent = receiptsCache.length ? `${receiptsCache.length} file${receiptsCache.length === 1 ? "" : "s"}, ${(total / 1024 / 1024).toFixed(1)} MB stored in this browser.` : "No files yet.";
     const list = [...receiptsCache].sort((a, b) => (b.addedAt || "").localeCompare(a.addedAt || ""));
@@ -519,7 +538,7 @@
     const order = ["cash", "noncash", "stock", "mileage", "expense"];
     const years = year === "all" ? [...new Set(vis.map(yearOf).filter(Boolean))].sort().reverse() : [year];
     const checks = years.flatMap(y => { const sy = year === "all" ? summarize(vis.filter(e => yearOf(e) === y)) : s; return [`Filing checklist ${y}:`, ...sy.checklist.map(c => `  [${c.state === "need" ? "!" : c.state === "done" ? "x" : "-"}] ${c.text}`), ""]; });
-    return [`GIVING LEDGER — TAX SUMMARY ${year === "all" ? "(all years)" : year}`, "",
+    return [`DEDUCTBOOK — TAX SUMMARY ${year === "all" ? "(all years)" : year}`, "",
       `Total charitable deduction: ${money(s.deductible)}`, ...order.map(k => `  ${KINDS[k].label}: ${money(s.byKind[k])}`), s.needsDocs ? `  Of which still needing documentation: ${money(s.needsDocs)}` : "", s.notEligible ? `  Recorded but not eligible: ${money(s.notEligible)}` : "", "",
       "By donor:", ...Object.entries(s.byDonor).map(([k, v]) => `  ${k}: ${money(v)}`), "",
       "By organization:", ...Object.entries(s.byOrg).map(([k, v]) => `  ${k}: ${money(v)}`), "",
@@ -528,9 +547,9 @@
       conflictNote() ? "" : "", conflictNote() ? "NOTE:" + conflictNote() + " Resolve them in the ledger before filing." : ""
     ].join("\n");
   }
-  const exportCsv = () => { const vis = countableEntries(); if (!vis.length) return toast("Nothing to export for this year"); download(`giving-ledger-${year}.csv`, csvFor(vis), "text/csv"); toast("CSV download started (if nothing happened, use Copy CSV)." + conflictNote(), !!conflictNote()); };
+  const exportCsv = () => { const vis = countableEntries(); if (!vis.length) return toast("Nothing to export for this year"); download(`deductbook-${year}.csv`, csvFor(vis), "text/csv"); toast("CSV download started (if nothing happened, use Copy CSV)." + conflictNote(), !!conflictNote()); };
   $("csvBtn").addEventListener("click", exportCsv); $("summaryCsv").addEventListener("click", exportCsv);
-  $("itemsCsv").addEventListener("click", async () => { const vis = countableEntries().filter(e => e.kind === "noncash"); if (!vis.length) return toast("No goods donations for this year"); download(`giving-ledger-items-${year}.csv`, itemsCsvFor(vis), "text/csv"); toast("Itemized goods CSV download started"); });
+  $("itemsCsv").addEventListener("click", async () => { const vis = countableEntries().filter(e => e.kind === "noncash"); if (!vis.length) return toast("No goods donations for this year"); download(`deductbook-items-${year}.csv`, itemsCsvFor(vis), "text/csv"); toast("Itemized goods CSV download started"); });
   $("copyCsvBtn").addEventListener("click", async () => { const vis = countableEntries(); if (!vis.length) return toast("Nothing to copy"); toast((await copyText(csvFor(vis))) ? "CSV copied — paste into a spreadsheet." + conflictNote() : "Copy blocked by the browser", !!conflictNote()); });
   $("summaryCopy").addEventListener("click", async () => toast((await copyText(summaryText())) ? "Summary copied" : "Copy blocked by the browser"));
   $("summaryPrint").addEventListener("click", () => { try { window.print(); } catch (e) {} toast("If no print dialog opened, use Copy summary instead"); });
@@ -544,7 +563,7 @@
     foot.hidden = false; foot.innerHTML = `<b>${esc(SUPPORT.heading || "Support this site")}</b> ${esc(SUPPORT.footer || "Free to use. If it helped, a small tip keeps it running.")} <span class="support-links">${links}</span>`;
     let dismissed = false; try { dismissed = localStorage.getItem("gl_support_dismissed") === "1"; } catch (e) {}
     card.hidden = dismissed;
-    card.innerHTML = `<div><h4>${esc(SUPPORT.heading || "Support this site")}</h4><span>${esc(SUPPORT.message || "Giving Ledger is free and stores nothing on a server. If it saved you time at tax season, a tip of any size keeps it online — entirely optional.")}</span></div><div class="support-links">${links}<button class="btn sm link" type="button" id="supportDismiss">Not now</button></div>`;
+    card.innerHTML = `<div><h4>${esc(SUPPORT.heading || "Support this site")}</h4><span>${esc(SUPPORT.message || "DeductBook is free to use. If it saved you time at tax season, a tip of any size keeps it online — entirely optional.")}</span></div><div class="support-links">${links}<button class="btn sm link" type="button" id="supportDismiss">Not now</button></div>`;
     const d = $("supportDismiss"); if (d) d.addEventListener("click", () => { try { localStorage.setItem("gl_support_dismissed", "1"); } catch (e) {} card.hidden = true; });
   }
 
@@ -563,7 +582,7 @@
       <div class="actions" style="margin-top:0"><button class="btn" id="bkSamples" type="button">Load sample entries</button><button class="btn danger" id="bkClear" type="button">Delete all data</button><button class="btn" data-close type="button" style="margin-left:auto">Close</button></div>`);
     if (cloudMode) { $("bkReplace").parentElement.hidden = true; $("bkClear").hidden = true; $("bkSamples").hidden = readOnly(); }
     const makeBackup = async () => { try { return await (cloudMode ? Cloud.exportBackup(state) : window.Store.exportBackup(state)); } catch (e) { toast(e.message || "Backup failed", true); return null; } };
-    $("bkDownload").addEventListener("click", async () => { const b = await makeBackup(); if (!b) return; download(`giving-ledger-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(b), "application/json"); toast(`Backup started: ${b.counts.entries} entries, ${b.counts.receipts} receipts${b.counts.missingReceiptFiles ? ` (${b.counts.missingReceiptFiles} referenced files were not found)` : ""}`, true); });
+    $("bkDownload").addEventListener("click", async () => { const b = await makeBackup(); if (!b) return; download(`deductbook-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(b), "application/json"); toast(`Backup started: ${b.counts.entries} entries, ${b.counts.receipts} receipts${b.counts.missingReceiptFiles ? ` (${b.counts.missingReceiptFiles} referenced files were not found)` : ""}`, true); });
     $("bkCopy").addEventListener("click", async () => { const b = await makeBackup(); if (!b) return; toast((await copyText(JSON.stringify(b))) ? `Backup copied: ${b.counts.entries} entries, ${b.counts.receipts} receipts` : "Copy blocked by the browser", true); });
     const doImport = mode => async ev => {
       const f = ev.target.files[0]; if (!f) return;
@@ -610,7 +629,7 @@
     ];
     const before = state.entries; state.entries = before.concat(samples); state.settings.samples = true;
     if (!persist()) { state.entries = before; return; }
-    renderYearPicker(); renderAll(); showView("ledger"); toast("Sample entries loaded");
+    renderYearPicker(); renderAll(); if (currentView !== "overview") showView("ledger"); toast("Sample entries loaded");
   }
   $("clearSamples").addEventListener("click", () => { const before = state.entries; state.entries = before.filter(e => !e.sample); state.settings.samples = false; if (!persist()) { state.entries = before; return; } renderYearPicker(); renderAll(); toast("Sample entries removed"); });
 
@@ -618,7 +637,7 @@
   function renderAll() {
     freeUrls();
     $("sampleBanner").hidden = !state.entries.some(e => e.sample);
-    renderLedger(); renderVolunteer(); renderGuide(); renderReceipts(); renderSummary();
+    renderLedger(); renderGuide(); renderReceipts(); renderSummary(); if (currentView === "overview") renderOverview();
     if (form.parentElement && form.parentElement.id) renderThumbs();
   }
 
@@ -776,15 +795,20 @@
   (async function init() {
     $("f_date").value = new Date().toISOString().slice(0, 10);
     setKind("cash"); updateExpenseVisibility();
+    const wantSample = location.hash === "#sample";
+    $("mbAdd").addEventListener("click", () => { showView("ledger"); setTimeout(() => form.scrollIntoView({ behavior: "smooth", block: "start" }), 50); });
+    $("mbPhoto").addEventListener("click", () => $("mobileCapture").click());
+    $("mobileCapture").addEventListener("change", ev => { const files = [...ev.target.files]; ev.target.value = ""; if (!files.length) return; showView("ledger"); handleFiles(files); form.scrollIntoView({ behavior: "smooth", block: "start" }); });
     // Read an invitation token BEFORE the view router rewrites the hash.
     const im = location.hash.match(/invite=([a-f0-9]+)/); if (im) { try { sessionStorage.setItem("gl_invite", im[1]); } catch (e) {} }
     const v = location.hash.slice(1);
-    showView($("view-" + v) ? v : "ledger");
+    showView($("view-" + v) ? v : "overview");
     // device-mode boot first so the page is usable immediately
     const orphans = await window.Store.cleanupOrphans(state).catch(() => 0);
     await refreshReceipts();
     if (orphans) toast(`Removed ${orphans} receipt file${orphans > 1 ? "s" : ""} left over from an interrupted restore.`, true);
     renderYearPicker(); renderAll(); renderAccountBar();
+    if (wantSample && !state.entries.length) { loadSamples(); showView("overview"); }
     if (!window.Store.saveState(state)) toast("Heads up: this browser is blocking storage, so nothing you enter will be kept.", true);
     if (Cloud.configured) {
       try {

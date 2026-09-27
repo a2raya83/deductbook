@@ -358,14 +358,14 @@
       const dataUrl = await new Promise((res, rej) => { const f = new FileReader(); f.onload = () => res(f.result); f.onerror = () => rej(new Error("read " + r.name)); f.readAsDataURL(blob); });
       out.push({ id: r.id, entryId: r.entryId, name: r.name, type: r.type, size: r.size, addedAt: r.addedAt, data: dataUrl });
     }
-    return { app: "giving-ledger", version: 2, exportedAt: new Date().toISOString(), household: Cloud.currentHousehold.name, counts: { entries: state.entries.length, receipts: out.length, missingReceiptFiles: 0 }, entries: state.entries, settings: {}, receipts: out };
+    return { app: "deductbook", version: 2, exportedAt: new Date().toISOString(), household: Cloud.currentHousehold.name, counts: { entries: state.entries.length, receipts: out.length, missingReceiptFiles: 0 }, entries: state.entries, settings: {}, receipts: out };
   };
 
   /* ---------------- merge a backup file into the household ---------------- */
   // Merge only (Replace is a device-mode operation). Receipts are uploaded under fresh ids, entries
   // are re-pointed, then the app commits the merged ledger through its normal sync path.
   Cloud.importBackup = async function (json, state, commit) {
-    if (!json || typeof json !== "object" || json.app !== "giving-ledger" || !Array.isArray(json.entries)) throw new Error("That isn't a Giving Ledger backup file.");
+    if (!json || typeof json !== "object" || !["deductbook", "giving-ledger"].includes(json.app) || !Array.isArray(json.entries)) throw new Error("That isn't a DeductBook backup file.");
     if (!Cloud.canWrite()) throw new Error("You have read-only access to this ledger.");
     const incoming = json.entries.map(window.Store.sanitizeEntry).filter(Boolean);
     const rejected = json.entries.length - incoming.length;

@@ -3,7 +3,7 @@
 // Run: node test/make-harness.js   then serve the site and open /test/cloud-harness.html
 const fs = require("fs"), path = require("path");
 const root = path.join(__dirname, "..");
-let h = fs.readFileSync(path.join(root, "index.html"), "utf8");
+let h = fs.readFileSync(path.join(root, "app.html"), "utf8");
 h = h.replace(/href="css\//g, 'href="../css/').replace(/src="js\//g, 'src="../js/');
 h = h.replace(/<script src="https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js[^"]*"><\/script>\s*/, "");
 h = h.replace(/<script src="\.\.\/js\/config\.local\.js"><\/script>[^\n]*\n?/, "");   // no local overrides in the harness
@@ -24,6 +24,6 @@ h = h.replace('<script src="../js/config.js"></script>', `<script src="fake-supa
     }
   } catch (e) {}
 </script>`);
-h = h.replace("<title>Giving Ledger</title>", "<title>Giving Ledger — cloud test harness</title>");
+h = h.replace("<title>DeductBook</title>", "<title>DeductBook — cloud test harness</title>");
 fs.writeFileSync(path.join(root, "test/cloud-harness.html"), h);
 console.log("wrote test/cloud-harness.html");

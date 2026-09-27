@@ -18,6 +18,7 @@
   if (sessionStorage.getItem(PHASE) === "2") {
     const prior = JSON.parse(sessionStorage.getItem("gl_cloud_log") || "[]");
     await sleep(1200);                                              // boot + restore + reconcile
+    document.querySelector(".tab[data-view='ledger']").click(); await sleep(300);
     T("restore on load: parked entry reached the server", E.has("parked1") && E.get("parked1").body.amount === 321);
     T("restore on load: ledger shows the restored entry (reconciled, not the pre-restore snapshot)", !!rowFor("parked1"));
     // now save an UNRELATED new entry through the form
@@ -40,6 +41,7 @@
   localStorage.setItem("gl_household", HH);
   F.signIn("user-alice", "alice@example.test"); await sleep(900);
   T("sign-in opens the household ledger in the UI", rowFor("d") && rowFor("g") && document.getElementById("accountBtn").textContent === "Alice household");
+  document.querySelector(".tab[data-view='ledger']").click(); await sleep(300);
   T("save status pill visible and Saved", !document.getElementById("saveStatus").hidden && /Saved/.test(status()));
 
   // form save reaches the server

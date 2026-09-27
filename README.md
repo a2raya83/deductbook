@@ -1,8 +1,8 @@
-# Giving Ledger
+# DeductBook
 
-Live site: https://a2raya83.github.io/giving-ledger/ · Source: https://github.com/a2raya83/giving-ledger
+Live site: https://a2raya83.github.io/giving-ledger/ (landing page; the app is at /app.html) · Source: https://github.com/a2raya83/giving-ledger
 
-A public, static web app for tracking charitable donations the way the IRS expects:
+DeductBook: charitable donations, organized for tax time. A public, static web app for tracking charitable donations the way the IRS expects:
 cash gifts, donated goods with fair-market-value guidance, gifts of stock, volunteer
 mileage, and out-of-pocket volunteer expenses, with receipts attached to each entry.
 
@@ -14,7 +14,9 @@ records on a site you don't run a backend for. Backup & restore moves data betwe
 
 | Path | What it is |
 |---|---|
-| `index.html` | The page: app bar, tabs, all six views, and the entry form |
+| `index.html` | Landing page (the public front door) |
+| `app.html` | The app: overview, donations, receipts, tax summary, value guide, rules, and the entry form |
+| `css/landing.css` | Landing-page styles (shares tokens with `css/app.css`) |
 | `css/app.css` | Styles, light and dark palettes |
 | `js/rules.js` | IRS rules engine: thresholds, per-entry evaluation, appraisal grouping, year summary and filing checklist |
 | `js/fmv.js` | Fair-market-value ranges for ~130 commonly donated items, plus the appraisal-group map |

@@ -23,6 +23,7 @@
     T("J: its staged flag was cleared by startup cleanup", !files.some(r => r.staged));
     T("J: ledger is the restored dataset", s.entries.length === 1 && s.entries[0].org === "Charity Z");
     T("J: no 'removed leftover files' toast for a committed batch", !/left over from an interrupted restore/.test(toast()));
+    document.querySelector(".tab[data-view='ledger']").click(); await sleep(200);
     [PHASE_KEY, LOG_KEY, CTX_KEY].forEach(k => sessionStorage.removeItem(k));
     console.log(log.join("\n"));
     console.log(log.some(l => l.startsWith("FAIL")) ? "SOME FAILED" : "ALL PASS (" + log.length + " checks)");
@@ -54,6 +55,7 @@
   document.querySelector(".tab[data-view='ledger']").click(); await sleep(150);
 
   // ---- setup: samples + one receipt attached to Goodwill through the form ----
+  document.querySelector(".tab[data-view='ledger']").click(); await sleep(150);
   document.getElementById("loadSamplesInline").click(); await sleep(400);
   gwRow().querySelector("[data-act='edit']").click(); await sleep(300);
   { const dt = new DataTransfer(); dt.items.add(await pngFile("gw.png")); const inp = document.getElementById("f_files"); inp.files = dt.files; inp.dispatchEvent(new Event("change", { bubbles: true })); }
