@@ -23,6 +23,8 @@ alter table public.households add column if not exists plan text not null defaul
 alter table public.households add column if not exists plan_status text not null default 'beta';
 alter table public.households add column if not exists plan_renews_at timestamptz;
 alter table public.households add column if not exists canceled_at timestamptz;
+-- Receipt storage allowance per household (250 MB during the beta); changed only by the operator.
+alter table public.households add column if not exists storage_quota_bytes bigint not null default 262144000;
 
 create table if not exists public.household_members (
   household_id uuid not null references public.households(id) on delete cascade,
@@ -149,7 +151,8 @@ create policy hh_update on public.households for update using (public.is_owner(i
 create or replace function public.protect_plan_fields() returns trigger language plpgsql as $$
 begin
   if auth.role() = 'authenticated' and (new.plan is distinct from old.plan or new.plan_status is distinct from old.plan_status
-      or new.plan_renews_at is distinct from old.plan_renews_at or new.canceled_at is distinct from old.canceled_at) then
+      or new.plan_renews_at is distinct from old.plan_renews_at or new.canceled_at is distinct from old.canceled_at
+      or new.storage_quota_bytes is distinct from old.storage_quota_bytes) then
     raise exception 'plan fields can only be changed by the billing process';
   end if;
   return new;
@@ -199,10 +202,33 @@ begin new.updated_at = now(); new.updated_by = auth.uid(); return new; end $$;
 drop trigger if exists entries_touch on public.entries;
 create trigger entries_touch before update on public.entries for each row execute function public.touch_entry();
 
+-- ---------- storage allowance ----------
+-- Used and allowed receipt storage for a household (members only).
+create or replace function public.household_storage(p_household uuid)
+returns table (used_bytes bigint, quota_bytes bigint)
+language sql stable security definer set search_path = public as $$
+  select (select coalesce(sum(r.size), 0)::bigint from public.receipts r where r.household_id = p_household),
+         (select h.storage_quota_bytes from public.households h where h.id = p_household)
+  where public.is_member(p_household);
+$$;
+-- Backstop: an insert that would exceed the allowance is refused even if the client skipped its check.
+create or replace function public.enforce_storage_quota() returns trigger language plpgsql security definer set search_path = public as $$
+declare used bigint; quota bigint;
+begin
+  select coalesce(sum(size), 0) into used from public.receipts where household_id = new.household_id;
+  select storage_quota_bytes into quota from public.households where id = new.household_id;
+  if used + coalesce(new.size, 0) > coalesce(quota, 0) then
+    raise exception 'STORAGE_QUOTA: this household has used its % MB of receipt storage', round(coalesce(quota, 0) / 1048576.0);
+  end if;
+  return new;
+end $$;
+drop trigger if exists receipts_quota on public.receipts;
+create trigger receipts_quota before insert on public.receipts for each row execute function public.enforce_storage_quota();
+
 -- ---------- private receipt storage ----------
 insert into storage.buckets (id, name, public, file_size_limit)
-  values ('receipts', 'receipts', false, 26214400)
-  on conflict (id) do update set public = false, file_size_limit = 26214400;
+  values ('receipts', 'receipts', false, 10485760)
+  on conflict (id) do update set public = false, file_size_limit = 10485760;   -- 10 MB per file
 
 -- Object path is <household_id>/<receipt id>; access follows household membership.
 drop policy if exists receipts_read on storage.objects;

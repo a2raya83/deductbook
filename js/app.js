@@ -276,7 +276,7 @@
     $("saveHint").textContent = "Processing files…";
     let stored = 0;
     for (const f of files) {
-      if (f.size > 25 * 1024 * 1024) { toast(`${f.name} is over 25 MB — skipped`); continue; }
+      if (f.size > 10 * 1024 * 1024) { toast(`${f.name} is over 10 MB, so it was skipped. Photos are compressed automatically; for a scan, export it at a lower resolution.`, true); continue; }
       try { const rec = await Files().addReceipt(f, editingId); pendingReceiptIds.push(rec.id); stored++; }
       catch (e) { toast(cloudMode ? `Couldn't upload ${f.name}: ${e.message}` : `Couldn't store ${f.name} — receipt storage may be blocked in this browser.`, true); }
     }
@@ -504,6 +504,7 @@
     $("missingReceipts").querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => { const e = state.entries.find(x => x.id === b.dataset.edit); showView("ledger"); fillForm(e); }));
     const total = receiptsCache.reduce((t, r) => t + (r.size || 0), 0);
     $("receiptStorage").textContent = receiptsCache.length ? `${receiptsCache.length} file${receiptsCache.length === 1 ? "" : "s"}, ${(total / 1024 / 1024).toFixed(1)} MB ${cloudMode ? "in your household's private storage" : "stored in this browser"}.` : "No files yet.";
+    if (cloudMode) Cloud.files.storage().then(st => { if (st) $("receiptStorage").textContent += ` ${(st.used / 1048576).toFixed(1)} of ${Math.round(st.quota / 1048576)} MB allowance used.`; }).catch(() => {});
     const list = [...receiptsCache].sort((a, b) => (b.addedAt || "").localeCompare(a.addedAt || ""));
     $("receiptGrid").innerHTML = list.length ? list.map(r => { const e = state.entries.find(x => (x.receiptIds || []).includes(r.id)); return `<div class="receipt-card" data-id="${esc(r.id)}">
         <div class="img" data-open="${esc(r.id)}">${r.type.startsWith("image/") ? `<img src="${urlFor(r)}" alt="${esc(r.name)}">` : `<span class="small">${fileLabel(r)} · ${esc(r.name.slice(0, 22))}</span>`}</div>

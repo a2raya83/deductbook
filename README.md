@@ -58,6 +58,13 @@ Drag the folder onto the Netlify dashboard, or connect the repo. No build comman
 
 Add a custom domain from either dashboard when you're ready.
 
+## Storage limits
+
+Each file is capped at 10 MB (app check plus the bucket's own limit). Each household has a receipt storage
+allowance, 250 MB during the beta, stored in `households.storage_quota_bytes` and enforced by a trigger on
+`receipts`; the app checks `household_storage()` before uploading and shows the usage on the Receipts page.
+Raise a household's allowance with an update run as the database owner (clients cannot change it).
+
 ## Admin overview
 
 `admin.html` shows sign-ups, visits, households, member roles and storage per account, for abuse review. It

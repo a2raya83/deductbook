@@ -312,16 +312,28 @@
     const map = {}; (data || []).forEach((d, i) => { if (d && d.signedUrl) map[records[i].id] = d.signedUrl; });
     return map;
   }
+  const QUOTA_MSG = quota => `This household's receipt storage is full${quota ? " (" + Math.round(quota / 1048576) + " MB)" : ""}. Delete files you no longer need, or write to support.`;
   Cloud.files = {
     async addReceipt(file, entryId) {
       if (!Cloud.canWrite()) throw new Error("Viewers can't add receipts.");
+      // Check the household's allowance before uploading; the database trigger is the backstop.
+      try { const st = await this.storage(); if (st && st.used + file.size > st.quota) throw new Error(QUOTA_MSG(st.quota)); }
+      catch (e) { if (/storage is full/.test(e.message)) throw e; /* no allowance info: let the server decide */ }
       const id = uid(); const path = pathFor(id);
       const { error: upErr } = await sb.storage.from(BUCKET).upload(path, file, { contentType: file.type || "application/octet-stream", upsert: false });
       if (upErr) throw new Error(upErr.message);
       const rec = { id, household_id: Cloud.currentHousehold.id, entry_id: entryId || null, name: (file.name || "receipt").slice(0, 200), type: file.type || "", size: file.size, path };
       const { error } = await sb.from("receipts").insert(rec);
-      if (error) { await sb.storage.from(BUCKET).remove([path]).catch(() => {}); throw new Error(error.message); }
+      if (error) { await sb.storage.from(BUCKET).remove([path]).catch(() => {}); throw new Error(/STORAGE_QUOTA/.test(error.message) ? QUOTA_MSG(null) : error.message); }
       return { id, entryId: entryId || null, name: rec.name, type: rec.type, size: rec.size, addedAt: new Date().toISOString(), path };
+    },
+    // Used and allowed receipt storage for the open household, or null when the server can't say.
+    async storage() {
+      if (!Cloud.currentHousehold) return null;
+      const { data, error } = await sb.rpc("household_storage", { p_household: Cloud.currentHousehold.id });
+      const row = Array.isArray(data) ? data[0] : data;
+      if (error || !row || row.quota_bytes == null) return null;
+      return { used: Number(row.used_bytes || 0), quota: Number(row.quota_bytes) };
     },
     async listReceipts() {
       if (!Cloud.currentHousehold) return [];
