@@ -146,6 +146,21 @@
   let allowedKinds = ["cash", "noncash", "stock", "mileage", "expense"];
   // The donation list leads; the form opens through Add donation or Edit. While the ledger is empty it stays open.
   let formOpen = false;
+  let firstUse = false;   // a brand-new, empty ledger: the first donation form leads, the dashboard follows the first save
+  function maybeFirstUse() {
+    const explicit = location.hash && location.hash !== "#overview" && location.hash !== "#";
+    if (SAMPLE_MODE || explicit || state.entries.length || (Cloud.configured && Cloud.user())) return;
+    firstUse = true; showView("ledger"); openForm(false);
+    $("formTitle").textContent = "Add your first donation"; $("firstDemo").hidden = false;
+  }
+  // After the first save on a device without an account: one clear choice, once.
+  function offerCloudSave() {
+    if (!Cloud.configured || Cloud.user() || state.settings.saveOfferShown) return;
+    state.settings.saveOfferShown = true; persist();
+    const close = modal(`<h3>Saved in this browser</h3><p class="small">Your first donation is stored on this device. Sign in to keep it across devices and share the ledger with your household; the entry comes with you.</p>
+      <div class="actions"><button class="btn primary" id="offerSignIn" type="button">Save across devices</button><button class="btn" data-close type="button">Continue on this device</button></div>`);
+    $("offerSignIn").addEventListener("click", () => { close(); accountModal(); });
+  }
   const formForced = () => !state.entries.some(isCountable);
   function syncFormSlot() { $("ledgerFormSlot").hidden = !(formOpen || formForced()); $("ledgerAdd").hidden = formOpen || formForced(); }
   function openForm(scroll = true) { formOpen = true; syncFormSlot(); if (scroll) setTimeout(() => $("ledgerFormSlot").scrollIntoView({ behavior: "smooth", block: "start" }), 30); }
@@ -232,7 +247,7 @@
   async function fillForm(e) {
     await resetForm(false);
     editingId = e.id; editingBase = cloudMode ? Cloud.baseFor(e.id) : null; setKind(e.kind);
-    $("f_date").value = e.date || ""; $("f_donor").value = e.donor || ""; $("f_org").value = e.org || ""; $("f_notes").value = e.notes || ""; $("f_ack").checked = !!e.ackReceived; $("f_hasReceipt").checked = !!e.hasReceiptDecl;
+    $("f_date").value = e.date || ""; $("f_donor").value = e.donor || ""; $("f_org").value = e.org || ""; $("f_notes").value = e.notes || ""; $("moreDetails").open = !!(e.notes || e.checkNo); $("f_ack").checked = !!e.ackReceived; $("f_hasReceipt").checked = !!e.hasReceiptDecl;
     originalReceiptIds = (e.receiptIds || []).slice(); pendingReceiptIds = originalReceiptIds.slice(); stagedRemovals = [];
     if (e.kind === "cash") { $("f_amount_cash").value = e.amount || ""; $("f_method").value = e.method || "card"; $("f_checkNo").value = e.checkNo || ""; $("f_benefit").value = e.benefit || ""; $("f_bankRecord").checked = e.bankRecord !== false; }
     if (e.kind === "noncash") { $("itemRows").innerHTML = ""; (e.items || []).forEach(addItemRow); if (!(e.items || []).length) addItemRow(); $("f_benefit").value = e.benefit || ""; $("f_howValued").value = e.howValued || window.FMV_METHODS[0]; $("f_acquired").value = e.acquired || ""; $("f_vehicle").checked = !!e.vehicle; $("f_appraised").checked = !!e.appraised; }
@@ -255,7 +270,7 @@
     $("f_date").value = keepDate && d ? d : new Date().toISOString().slice(0, 10);
     $("f_bankRecord").checked = true; $("f_longTerm").checked = true;
     $("itemRows").innerHTML = ""; if (currentKind === "noncash") addItemRow();
-    $("formTitle").textContent = "Record a donation"; $("cancelEdit").hidden = true; $("saveBtn").textContent = "Save donation"; $("saveHint").textContent = "";
+    $("formTitle").textContent = firstUse ? "Add your first donation" : "Record a donation"; $("cancelEdit").hidden = true; $("saveBtn").textContent = "Save donation"; $("saveHint").textContent = ""; $("moreDetails").open = false;
     recalcItems(); renderThumbs(); updateExpenseVisibility(); updateInsight();
   }
   $("resetBtn").addEventListener("click", () => resetForm());
@@ -266,6 +281,8 @@
 
   function updateInsight() {
     const e = readForm(); const r = evaluate(e, { files: pendingReceiptIds.filter(id => receiptsCache.some(x => x.id === id)).length });
+    // The acknowledgment question appears once the gift reaches $250; the rules keep evaluating whatever is stored.
+    const ackLabel = $("f_ack").closest("label"); if (ackLabel) ackLabel.hidden = !(r.gross >= RULES.ACK_THRESHOLD || e.ackReceived);
     const blank = !e.org && r.gross === 0 && !num(e.miles) && !(e.items || []).some(it => it.desc);
     const headline = blank ? "Enter the donation details to see an estimate." : r.status === "stop" ? "Not eligible as entered" : r.status === "docs" ? "Eligible — records needed before filing" : "Eligible, records complete";
     const flags = blank ? [{ level: "info", text: currentKind === "mileage" ? "Log the miles and the purpose of the trip. The charitable rate is 14¢ per mile." : "As you fill in the gift, the checker lists the records the IRS expects and any reductions that apply." }] : r.flags.length ? r.flags : [{ level: "info", text: "Nothing further needed." }];
@@ -347,7 +364,8 @@
     originalReceiptIds = pendingReceiptIds.slice(); stagedRemovals = [];
     await refreshReceipts();
     if (yearOf(e) !== year && year !== "all") year = yearOf(e);
-    persist(); const k = e.kind; await resetForm(); setKind(k); closeForm(); renderAll();
+    persist(); const k = e.kind; const wasFirst = firstUse; firstUse = false; await resetForm(); setKind(k); closeForm(); renderAll();
+    if (wasFirst) { $("firstDemo").hidden = true; showView("overview"); offerCloudSave(); }
     const r = ev2(e);
     toast(idx >= 0 ? "Entry updated" : r.status === "stop" ? "Saved — not eligible as entered (see status)" : r.status === "docs" ? "Saved — documentation still needed" : "Donation saved");
   });
@@ -402,6 +420,7 @@
     const s = summarize(vis);
     const cnt = vis.filter(isCountable);
     const attention = s.needsRecords;
+    $("ledgerStats").hidden = !cnt.length;   // nothing to total yet: the form leads
     $("ledgerStats").innerHTML = `
       <div class="stat hero"><div class="label">Estimated deduction before limits · ${yearLabel()}</div><div class="value">${money(s.deductible)}</div><div class="sub">${cnt.length} entr${cnt.length === 1 ? "y" : "ies"}${s.conflicts ? ` · ${s.conflicts} conflict${s.conflicts > 1 ? "s" : ""} not counted` : ""} · recorded ${money(s.gross)}${s.needsDocs ? ` · ${money(s.needsDocs)} still needs records` : ""}${s.notEligible ? ` · ${money(s.notEligible)} not eligible, excluded` : ""}</div></div>
       <div class="stat"><div class="label">Cash gifts</div><div class="value">${money(s.cash)}</div><div class="sub">Schedule A line 11</div></div>
@@ -462,7 +481,6 @@
     const needRec = attention.filter(x => x.r.status === "docs").length, notElig = attention.length - needRec;
     if (needRec) steps.push([`Get the missing records for ${needRec} donation${needRec > 1 ? "s" : ""}`, "Acknowledgment letters and receipts, while the charity can still send them.", "ledger"]);
     if (notElig) steps.push([`Review ${notElig} donation${notElig > 1 ? "s" : ""} not eligible as entered`, "Excluded from the estimate. Edit the entry if the details are wrong.", "ledger"]);
-    if (Cloud.configured && !user && !SAMPLE_MODE) steps.push(["Sign in to keep records across devices", "And share the ledger with your household.", "signin"]);
     if (cnt.length && !attention.length) steps.push(["Attach receipts you haven't yet", "Photos travel with the backup and the household ledger.", "receipts"]);
     steps.push(["Export the tax summary for your preparer", "Totals, filing checklist and a CSV of every donation.", "summary"]);
     $("overviewNext").innerHTML = `<div class="card-head" style="margin-bottom:10px"><div><h3>Next steps</h3></div></div><div class="next-steps">${steps.slice(0, 3).map(([t, d, go], i) => `<button class="next-step" type="button" data-go="${go}" style="text-align:left;cursor:pointer"><span class="n">${i + 1}</span><span class="t">${t}<span>${d}</span></span></button>`).join("")}</div>`;
@@ -718,7 +736,11 @@
   function renderAll() {
     freeUrls();
     $("sampleBanner").hidden = !(SAMPLE_MODE || state.entries.some(e => e.sample));
-    if (SAMPLE_MODE) $("sampleBanner").innerHTML = `<b>Sample ledger</b><span>Fictional records, kept apart from your own. Change anything.</span><div><button class="btn sm" type="button" id="resetSample">Reset demo</button><a class="btn sm primary" href="app.html" id="exitSample">Start your own record</a></div>`;
+    if (SAMPLE_MODE) $("sampleBanner").innerHTML = `<b>Sample ledger</b><span>Fictional records, kept apart from your own. Change anything.</span><div class="demo-steps" aria-label="Suggested tour"><span class="muted small">Try:</span><button class="btn sm" type="button" data-demo="entry">1 · View a donation</button><button class="btn sm" type="button" data-demo="receipts">2 · Open its receipt</button><button class="btn sm" type="button" data-demo="summary">3 · See the tax summary</button></div><div><button class="btn sm" type="button" id="resetSample">Reset demo</button><a class="btn sm primary" href="app.html" id="exitSample">Start your own record</a></div>`;
+    $("sampleBanner").querySelectorAll("[data-demo]").forEach(b => b.addEventListener("click", () => {
+      if (b.dataset.demo === "entry") { const e = state.entries.find(x => x.kind === "noncash") || state.entries[0]; showView("ledger"); if (e) fillForm(e); }
+      else showView(b.dataset.demo);
+    }));
     const rs = $("resetSample"); if (rs) rs.addEventListener("click", async () => {
       if (!rs.dataset.confirm) { rs.dataset.confirm = "1"; rs.textContent = "Confirm reset"; setTimeout(() => { delete rs.dataset.confirm; rs.textContent = "Reset demo"; }, 3500); return; }
       state.entries = []; state.settings.samples = false; persist();
@@ -827,7 +849,8 @@
     if (!user) {
       const close = modal(`<h3>Sign in</h3><p class="small">We'll email you a sign-in link. No password to remember. Your records then follow you to any device, and you can share a ledger with your household.</p>${planNotice()}
         <div class="field w12" style="margin-top:10px"><label for="siEmail">Email</label><input id="siEmail" type="email" autocomplete="email" placeholder="you@example.com"></div>
-        <div class="actions"><button class="btn primary" id="siGo" type="button">Email me a link</button><button class="btn" data-close type="button">Cancel</button></div><p class="small" id="siMsg"></p>`);
+        <div class="actions"><button class="btn primary" id="siGo" type="button">Email me a link</button><button class="btn" data-close type="button">Cancel</button></div><p class="small" id="siMsg"></p>
+        ${CFG.contactEmail ? `<p class="small muted">Trouble signing in? Email <a href="mailto:${esc(CFG.contactEmail)}">${esc(CFG.contactEmail)}</a>.</p>` : ""}`);
       $("siGo").addEventListener("click", async () => {
         const email = $("siEmail").value.trim(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { $("siMsg").textContent = "Enter a valid email address."; return; }
         $("siGo").disabled = true;
@@ -903,6 +926,7 @@
     else if (SAMPLE_MODE && state.entries.some(e => e.sample) && !state.entries.some(e => e.sample && (e.receiptIds || []).length)) attachSampleReceipts(state.entries.filter(e => e.sample)).catch(() => {});
     if (SAMPLE_MODE) { $("cloudHint").hidden = true; document.title = "DeductBook · sample ledger"; }
     if (!window.Store.saveState(state)) toast("Heads up: this browser is blocking storage, so nothing you enter will be kept.", true);
+    if (!Cloud.configured) maybeFirstUse();
     if (Cloud.configured) {
       try {
         const signedIn = await Cloud.init({
@@ -931,6 +955,7 @@
           }
         });
         if (wantSignIn && !signedIn) accountModal();
+        maybeFirstUse();
         if (im && !Cloud.user()) accountModal();
       } catch (e) { toast("Cloud sign-in is unavailable right now; working in device-only mode.", true); }
     }

@@ -47,7 +47,7 @@
     <div><button class="btn sm" id="clearSamples" type="button">Clear sample entries</button></div>
   </div>
   <div class="callout warn" id="conflictBanner" hidden></div>
-  <div class="callout" id="cloudHint" hidden><b>Saved on this device only.</b><span>Sign in to keep your records across devices and share the ledger with your household.</span><div><button class="btn sm primary" id="cloudSignIn" type="button">Sign in</button></div></div>
+  <div class="callout" id="cloudHint" hidden><b>Saved in this browser.</b><span>Sign in to open it on other devices and share it with your household.</span><div><button class="btn sm primary" id="cloudSignIn" type="button">Sign in</button></div></div>
   <div class="callout warn" id="readOnlyBanner" hidden><b>Read-only access.</b><span>You can view and export this household's records, but not change them.</span></div>
 
   <!-- ================= OVERVIEW ================= -->
@@ -70,7 +70,7 @@
     <div class="card raised" id="ledgerFormSlot" hidden>
       <div class="card-head">
         <div><h3 id="formTitle">Record a donation</h3><p>Money, goods, stock, or what you spent while volunteering. Capture the details and records for your donation while you still remember them.</p></div>
-        <button class="btn sm" id="cancelEdit" type="button" hidden>Cancel edit</button>
+        <div class="actions" style="margin:0"><a class="btn sm" id="firstDemo" href="app.html#sample" hidden>Explore the demo first</a><button class="btn sm" id="cancelEdit" type="button" hidden>Cancel edit</button></div>
       </div>
       <div id="formMount">
 <form id="entryForm" class="two-col" autocomplete="off" novalidate>
@@ -89,7 +89,6 @@
       <!-- CASH -->
       <div class="field w3" data-kinds="cash"><label for="f_amount_cash">Amount given</label><div class="money-input"><input type="number" id="f_amount_cash" min="0" step="0.01" placeholder="0.00"></div></div>
       <div class="field w3" data-kinds="cash"><label for="f_method">How paid</label><select id="f_method"><option value="card">Credit / debit card</option><option value="check">Check</option><option value="online">Online / app</option><option value="bank">Bank transfer</option><option value="payroll">Payroll deduction</option><option value="text">Text message</option><option value="cash">Cash</option><option value="other">Other</option></select></div>
-      <div class="field w3" data-kinds="cash"><label for="f_checkNo">Check # / confirmation</label><input type="text" id="f_checkNo" placeholder="Optional"></div>
       <div class="field w3" data-kinds="cash noncash"><label for="f_benefit">Value received in return</label><div class="money-input"><input type="number" id="f_benefit" min="0" step="0.01" placeholder="0.00"></div><span class="hint">Dinner, auction item, tickets, tote bag</span></div>
 
       <!-- NON-CASH -->
@@ -135,13 +134,19 @@
       <label class="check" data-kinds="cash"><input type="checkbox" id="f_bankRecord" checked><span>I have a bank record<span class="hint">Cancelled check, card or bank statement, pay stub</span></span></label>
       <label class="check" data-kinds="cash noncash stock mileage expense"><input type="checkbox" id="f_hasReceipt"><span>I have a receipt or record for this<span class="hint">Paper or digital. Attaching a photo below also counts.</span></span></label>
       <label class="check w12" data-kinds="cash noncash stock mileage expense"><input type="checkbox" id="f_ack"><span>I have a written acknowledgment from the charity<span class="hint">Required for any single gift or expense of $250 or more. A thank-you letter or year-end statement usually qualifies if it states what you gave and whether you received anything in return.</span></span></label>
-      <div class="field w12"><label for="f_notes">Notes</label><textarea id="f_notes" placeholder="Anything your preparer should know"></textarea></div>
       <div class="field w12">
-        <label>Receipts, acknowledgment letters, photos</label>
-        <label class="drop" id="dropZone" for="f_files">Drop files here, or tap to choose (photos or PDF). On a phone this opens the camera.</label>
+        <label>Add receipt <span class="hint">optional · a photo, PDF or the charity's letter</span></label>
+        <label class="drop" id="dropZone" for="f_files">Drop files here, or tap to choose. On a phone this opens the camera. Paper records are fine too; tick the box above.</label>
         <input type="file" id="f_files" accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.eml,.heic,.heif" multiple hidden>
         <div class="thumbs" id="thumbs"></div>
       </div>
+      <details class="field w12 more-details" id="moreDetails">
+        <summary>More details <span class="hint">check or confirmation number, notes</span></summary>
+        <div class="form-grid" style="margin-top:10px">
+          <div class="field w6" data-kinds="cash"><label for="f_checkNo">Check # / confirmation</label><input type="text" id="f_checkNo" placeholder="Optional"></div>
+          <div class="field w12"><label for="f_notes">Notes</label><textarea id="f_notes" placeholder="Anything worth remembering at tax time"></textarea></div>
+        </div>
+      </details>
     </div>
     <div class="actions">
       <button class="btn primary" type="submit" id="saveBtn">Save donation</button>
@@ -309,7 +314,7 @@
 
 <footer>
   <p class="support-foot" id="supportFooter" hidden></p>
-  <p id="footerStorage"><b>Without an account, your data stays on this device.</b> Entries and receipts are stored in this browser only. Sign in to save them to a household ledger you can open anywhere and share; use <b>Backup &amp; data</b> for a file copy either way.</p>
+  <p id="footerStorage"><b>Without an account, your data stays in this browser.</b> Use <b>Backup &amp; data</b> for a file copy, or sign in to keep it across devices.</p>
   <p>DeductBook organizes records and explains IRS rules in plain English. It is not tax advice. Confirm deductions with a qualified preparer.</p>
   <p><a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="support.html">Support</a> · <a href="./">About DeductBook</a></p>
 </footer>

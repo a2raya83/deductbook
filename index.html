@@ -36,7 +36,7 @@
   <section class="hero">
     <div>
       <h1 class="serif">Track your giving. <span>Simplify tax time.</span></h1>
-      <p class="lede">Keep charitable donations and receipts together, ready for your tax preparer.</p>
+      <p class="lede">Keep charitable donations and receipts together, ready for tax time.</p>
       <div class="cta">
         <a class="btn primary" href="app.html">Start tracking free</a>
         <a class="text-link" href="app.html#sample">Explore the demo →</a>
@@ -109,7 +109,7 @@
   </section>
 
   <section id="summary">
-    <div class="section-head"><h2 class="serif">What you hand your preparer</h2><p>The tax summary is the point of the whole year. Here is one, with sample data.</p></div>
+    <div class="section-head"><h2 class="serif">Your year-end donation summary</h2><p>Totals, the forms you'll need and what's still missing, whether you file yourself or hand it to a preparer. Here is one, with sample data.</p></div>
     <div class="summary-preview" style="margin-top:22px">
       <div class="summary-doc">
         <div class="doc-title">Tax summary · 2026</div>
@@ -144,19 +144,22 @@
 
   <section id="rules">
     <div class="section-head"><h2 class="serif">Every entry is checked against the IRS rules</h2><p>As you type, DeductBook reads what you entered against Publication 526 and tells you what counts, what gets reduced, and which record you still need. Plain English, with the reason.</p></div>
-    <div class="rule-examples">
-      <div class="rule-example"><div class="flag docs"><span><b>$250 gift, no letter yet.</b> Acknowledgment needed before you file. We say what the letter has to state.</span></div></div>
+    <div class="rule-examples one">
       <div class="rule-example"><div class="flag limit"><span><b>Gala tickets worth $120.</b> The value you received is subtracted, so $300 becomes $180.</span></div></div>
       <div class="rule-example"><div class="flag stop"><span><b>Lunch after a local volunteer shift.</b> Not deductible, and excluded from the estimate. Meals on an overnight trip for the charity do count.</span></div></div>
-      <div class="rule-example"><div class="flag info"><span><b>$6,000 of similar donated items across two charities.</b> Over $5,000 for the year means a qualified appraisal and Form 8283 Section B.</span></div></div>
     </div>
+    <details class="more-rules">
+      <summary>Two more examples</summary>
+      <div class="rule-examples" style="margin-top:12px">
+        <div class="rule-example"><div class="flag docs"><span><b>$250 gift, no letter yet.</b> Acknowledgment needed before you file. We say what the letter has to state.</span></div></div>
+        <div class="rule-example"><div class="flag info"><span><b>$6,000 of similar donated items across two charities.</b> Over $5,000 for the year means a qualified appraisal and Form 8283 Section B.</span></div></div>
+      </div>
+    </details>
   </section>
 
   <section id="features">
-    <div class="section-head"><h2 class="serif">What's inside</h2></div>
+    <div class="section-head"><h2 class="serif">Also inside</h2></div>
     <div class="feature-grid" style="margin-top:22px">
-      <div class="feature"><h3>Every kind of gift</h3><p>Cash, goods with itemized values, stock with cost basis and holding period, and volunteer mileage and expenses with the rules for what counts applied as you type.</p></div>
-      <div class="feature"><h3>Documentation, named</h3><p>Each donation shows Records OK, Acknowledgment needed, Receipt needed, or Not eligible, with the reason in plain English. Recorded value and estimated deduction are kept distinct.</p></div>
       <div class="feature"><h3 data-cloud="label">One household ledger</h3><p>Invite your spouse; both of you add donations and receipts to the same records from any device. Simultaneous edits are kept, never silently overwritten.</p><p class="small muted" data-cloud="off">Coming soon. Today, records stay on your device with backup files to move them.</p></div>
       <div class="feature"><h3>A value guide with sources</h3><p>Typical thrift-store ranges for about 130 common items, adjusted by condition, with the IRS rules on appraisals and similar-item aggregation built in.</p></div>
     </div>
@@ -166,7 +169,6 @@
     <div class="col">
       <h2 class="serif">Why we built it</h2>
       <p>For years our family tracked charitable gifts in ItsDeductible. When it was discontinued, we went looking for a replacement and didn't find one that covered everything: the cash gifts, the volunteer miles, the receipts and acknowledgment letters that make a deduction hold up, and a way for two people to keep one set of records.</p>
-      <p>So we built the replacement we wanted, and took the time to make it better than what we'd lost.</p>
     </div>
     <div class="col">
       <p><b>Coming from ItsDeductible or a spreadsheet?</b></p>
@@ -182,19 +184,20 @@
     <div class="section-head"><h2 class="serif">Pricing</h2><p>Free on one device. A household plan for cloud saving and sharing, free while it's in beta.</p></div>
     <div class="pricing" style="margin-top:22px">
       <div class="plan">
-        <div class="eyebrow">Free</div>
+        <div class="eyebrow">Free · This browser</div>
         <div class="price">$0</div>
         <ul>
           <li>All donation types, the value guide and the rules</li>
           <li>Receipts stored in your browser</li>
           <li>Tax summary, CSV exports, manual backups</li>
         </ul>
-        <p class="note">Records live on the device you use. Back up before clearing browser data.</p>
-        <a class="btn" href="app.html">Start free</a>
+        <p class="note">Records live in the browser you use. Back up before clearing browser data.</p>
+        <a class="btn" href="app.html">Use on this device</a>
       </div>
       <div class="plan featured">
-        <div class="eyebrow"><span data-cloud="on" hidden>Household · beta</span><span data-cloud="off">Household · coming soon</span></div>
-        <div class="price">Free during beta <small>· planned price $19/year per household</small></div>
+        <div class="eyebrow"><span data-cloud="on" hidden>Household · Free during beta</span><span data-cloud="off">Household · coming soon</span></div>
+        <div class="price">$0 <small>during the beta</small></div>
+        <p class="note">Planned price after the beta: $19 a year per household, everyone you invite included. You'll be told the date and price before anything changes.</p>
         <ul>
           <li>Everything in Free</li>
           <li>Cloud saving, open from phone or computer</li>
@@ -203,7 +206,7 @@
           <li>Read-only access for your accountant</li>
         </ul>
         <p class="note">If you ever stop paying, your records and exports stay available; only adding and sharing pause.</p>
-        <a class="btn primary" href="app.html#signin" data-cloud="on" hidden>Join the beta</a>
+        <a class="btn primary" href="app.html#signin" data-cloud="on" hidden>Create a household account</a>
         <span class="btn" aria-disabled="true" data-cloud="off">Not available yet</span>
       </div>
     </div>

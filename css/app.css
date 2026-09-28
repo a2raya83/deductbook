@@ -7,7 +7,7 @@
   --surface-2: #f1eee6;
   --ink: #182b36;           /* deep ink */
   --ink-2: #58656c;         /* slate */
-  --muted: #7a858b;
+  --muted: #6b767c;         /* 4.6:1 on the paper background */
   --line: #dcddd5;          /* soft stone */
   --line-strong: #c3c5bb;
   --rule: #d5cbb4;          /* notebook margin rule */
@@ -193,6 +193,7 @@ main { max-width: 1120px; margin: 0 auto; padding-block: 22px 96px; padding-inli
   padding: 8px 10px; min-height: 38px; width: 100%;
 }
 .field textarea { min-height: 70px; resize: vertical; }
+.check input:focus-visible, .item-row input:focus-visible, .item-row select:focus-visible, .item-row .rm:focus-visible, a:focus-visible, summary:focus-visible,
 .field input:focus-visible, .field select:focus-visible, .field textarea:focus-visible, .btn:focus-visible, .tab:focus-visible {
   outline: 2px solid var(--accent); outline-offset: 2px;
 }
@@ -323,6 +324,10 @@ td .sub { font-size: 0.8rem; color: var(--muted); }
 .checklist .item .mk { width: 18px; height: 18px; border-radius: 5px; display: grid; place-items: center; font-size: 0.7rem; font-weight: 700; margin-top: 2px; }
 .mk.need { background: var(--warn-soft); color: var(--warn); } .mk.done { background: var(--ok-soft); color: var(--ok); } .mk.na, .mk.opt { background: var(--surface-2); color: var(--muted); }
 .guide-help summary { cursor: pointer; font-weight: 600; }
+.more-details summary { cursor: pointer; font-weight: 600; font-size: 0.9rem; color: var(--ink-2); }
+.more-details summary .hint { font-weight: 400; margin-left: 6px; }
+.demo-steps { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+@media (max-width: 700px) { .btn.sm { min-height: 36px; } }
 .guide-help { margin-top: 14px; }
 .verdict:not(.ok):not(.docs):not(.stop) { color: var(--muted); }
 
