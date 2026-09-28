@@ -82,7 +82,7 @@
     if (e.conflictOf) out.conflictOf = str(e.conflictOf, 64);
     if (e.kind === "cash") Object.assign(out, { method: str(e.method, 20), checkNo: str(e.checkNo, 60), bankRecord: e.bankRecord !== false });
     if (e.kind === "noncash") Object.assign(out, {
-      items: (Array.isArray(e.items) ? e.items : []).map(it => it && typeof it === "object" ? { desc: str(it.desc, 200), category: str(it.category, 60), condition: ["excellent", "good", "fair"].includes(it.condition) ? it.condition : "good", qty: Math.max(1, Math.round(Number(it.qty) || 1)), unitValue: nonNeg(it.unitValue), lo: numOrNull(it.lo), hi: numOrNull(it.hi) } : null).filter(Boolean),
+      items: (Array.isArray(e.items) ? e.items : []).map(it => it && typeof it === "object" ? { desc: str(it.desc, 200), category: str(it.category, 60), condition: ["excellent", "good", "fair"].includes(it.condition) ? it.condition : "good", qty: Math.max(1, Math.round(Number(it.qty) || 1)), unitValue: nonNeg(it.unitValue), lo: numOrNull(it.lo), hi: numOrNull(it.hi), source: ["SA", "GW", "SA+GW", "EST"].includes(it.source) ? it.source : null } : null).filter(Boolean),
       howValued: str(e.howValued, 120), acquired: str(e.acquired, 300), vehicle: bool(e.vehicle), appraised: bool(e.appraised)
     });
     if (e.kind === "stock") { const s = e.stock || {}; out.stock = { ticker: str(s.ticker, 80), costBasis: numOrNull(s.costBasis), longTerm: s.longTerm !== false }; }

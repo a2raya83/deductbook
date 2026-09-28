@@ -195,9 +195,11 @@
   const catOptions = () => `<option value="">Category</option>` + window.FMV_GUIDE.map(g => `<option>${esc(g.cat)}</option>`).join("") + (window.FMV_EXTRA_CATEGORIES || []).map(c => `<option>${esc(c)}</option>`).join("") + `<option>Other</option>`;
   const condOptions = sel => window.FMV_CONDITIONS.map(([v, l]) => `<option value="${v}" ${v === sel ? "selected" : ""}>${l.split(" — ")[0]}</option>`).join("");
   const valueForCondition = (cond, lo, hi) => cond === "excellent" ? hi : cond === "fair" ? lo : (lo + hi) / 2;
+  // "Salvation Army guide, checked 2026-09-28" for exports and the deduction check
+  const sourceLabel = key => { const s = key && window.FMV_SOURCES && window.FMV_SOURCES[key]; return s ? `${s.short}${key === "EST" ? "" : " guide"}, checked ${s.checked}` : ""; };
   function addItemRow(it = {}) {
     const row = document.createElement("div"); row.className = "item-row";
-    if (!isBlank(it.lo) && !isBlank(it.hi)) { row.dataset.lo = it.lo; row.dataset.hi = it.hi; }
+    if (!isBlank(it.lo) && !isBlank(it.hi)) { row.dataset.lo = it.lo; row.dataset.hi = it.hi; if (it.source) row.dataset.source = it.source; }
     row.innerHTML = `<label class="cell desc-cell"><span>Description</span><input class="desc" type="text" placeholder="Description (e.g. men's wool overcoat)" value="${esc(it.desc)}"></label>
       <label class="cell"><span>Category</span><select class="cat">${catOptions()}</select></label>
       <label class="cell"><span>Condition</span><select class="cond">${condOptions(it.condition || "good")}</select></label>
@@ -217,7 +219,7 @@
     return [...$("itemRows").querySelectorAll(".item-row")].map(r => ({
       desc: r.querySelector(".desc").value.trim(), category: r.querySelector(".cat").value, condition: r.querySelector(".cond").value,
       qty: Math.max(1, Math.round(num(r.querySelector(".qty").value) || 1)), unitValue: num(r.querySelector(".unit").value),
-      lo: r.dataset.lo != null ? num(r.dataset.lo) : null, hi: r.dataset.hi != null ? num(r.dataset.hi) : null
+      lo: r.dataset.lo != null ? num(r.dataset.lo) : null, hi: r.dataset.hi != null ? num(r.dataset.hi) : null, source: r.dataset.source || null
     })).filter(i => i.desc || i.unitValue);
   }
   function recalcItems() {
@@ -285,6 +287,7 @@
     const ackLabel = $("f_ack").closest("label"); if (ackLabel) ackLabel.hidden = !(r.gross >= RULES.ACK_THRESHOLD || e.ackReceived);
     const blank = !e.org && r.gross === 0 && !num(e.miles) && !(e.items || []).some(it => it.desc);
     const headline = blank ? "Enter the donation details to see an estimate." : r.status === "stop" ? "Not eligible as entered" : r.status === "docs" ? "Eligible — records needed before filing" : "Eligible, records complete";
+    if (!blank && currentKind === "noncash") { const srcs = [...new Set((e.items || []).map(it => it.source).filter(Boolean))]; if (srcs.length) r.flags.push({ level: "info", text: "Guide values from: " + srcs.map(sourceLabel).join("; ") + ". Adjust for the item's actual condition and age." }); }
     const flags = blank ? [{ level: "info", text: currentKind === "mileage" ? "Log the miles and the purpose of the trip. The charitable rate is 14¢ per mile." : "As you fill in the gift, the checker lists the records the IRS expects and any reductions that apply." }] : r.flags.length ? r.flags : [{ level: "info", text: "Nothing further needed." }];
     $("insight").innerHTML = `<div class="eyebrow">Deduction check</div>
       <div class="verdict ${blank ? "" : r.status}">${blank ? "—" : money(r.deductible)}</div>
@@ -496,15 +499,15 @@
   function renderGuide() {
     const q = $("guideSearch").value.trim().toLowerCase(); const c = $("guideCat").value;
     const rows = [];
-    window.FMV_GUIDE.forEach((g, gi) => { if (c && g.cat !== c) return; g.items.forEach(([name, lo, hi], ii) => { if (!q || (name + " " + g.cat).toLowerCase().includes(q)) rows.push({ name, cat: g.cat, lo, hi, key: gi + ":" + ii }); }); });
-    $("guideRows").innerHTML = rows.length ? rows.map(r => `<tr><td>${esc(r.name)}</td><td class="muted small">${esc(r.cat)}</td><td class="r num range">${money(r.lo)}</td><td class="r num range">${money(r.hi)}</td><td class="r"><button class="btn sm" type="button" data-use="${r.key}">Use</button></td></tr>`).join("") : `<tr><td colspan="5" class="empty">Nothing matches. Try a broader word, or value the item from comparable online listings.</td></tr>`;
+    window.FMV_GUIDE.forEach((g, gi) => { if (c && g.cat !== c) return; g.items.forEach(([name, lo, hi, src], ii) => { if (!q || (name + " " + g.cat).toLowerCase().includes(q)) rows.push({ name, cat: g.cat, lo, hi, src: src || "EST", key: gi + ":" + ii }); }); });
+    $("guideRows").innerHTML = rows.length ? rows.map(r => `<tr><td>${esc(r.name)}</td><td class="muted small">${esc(r.cat)}</td><td class="r num range">${money(r.lo)}</td><td class="r num range">${money(r.hi)}</td><td class="small"><span class="src src-${r.src === "EST" ? "est" : "guide"}" title="${esc((window.FMV_SOURCES[r.src] || {}).name || "")}">${esc((window.FMV_SOURCES[r.src] || {}).short || r.src)}</span></td><td class="r"><button class="btn sm" type="button" data-use="${r.key}">Use</button></td></tr>`).join("") : `<tr><td colspan="6" class="empty">Nothing matches. Try a broader word, or value the item from comparable online listings.</td></tr>`;
     $("guideRows").querySelectorAll("[data-use]").forEach(b => b.addEventListener("click", async () => {
-      const [gi, ii] = b.dataset.use.split(":").map(Number); const g = window.FMV_GUIDE[gi]; const [name, lo, hi] = g.items[ii];
+      const [gi, ii] = b.dataset.use.split(":").map(Number); const g = window.FMV_GUIDE[gi]; const [name, lo, hi, src] = g.items[ii];
       showView("ledger"); if (editingId && currentKind !== "noncash") await resetForm(); setKind("noncash");
       const rows = [...$("itemRows").querySelectorAll(".item-row")]; const last = rows[rows.length - 1];
       const blank = last && !last.querySelector(".desc").value && !num(last.querySelector(".unit").value);
       if (blank) last.remove();
-      addItemRow({ desc: name, category: g.cat, condition: "good", qty: 1, unitValue: valueForCondition("good", lo, hi).toFixed(2), lo, hi });
+      addItemRow({ desc: name, category: g.cat, condition: "good", qty: 1, unitValue: valueForCondition("good", lo, hi).toFixed(2), lo, hi, source: src || "EST" });
       recalcItems(); updateInsight(); $("f_howValued").value = window.FMV_METHODS[0];
       openForm(); toast(`Added “${name}” at the good-condition value — change the condition to adjust`);
     }));
@@ -594,10 +597,10 @@
   }
   // One row per donated item — the inventory Form 8283 and a preparer want.
   function itemsCsvFor(entries) {
-    const cols = ["Date", "Tax year", "Given by", "Organization", "Item", "Category", "Condition", "Qty", "Value each", "Line total", "Guide low", "Guide high", "How valued", "Acquired / cost", "Acknowledgment", "Receipt files", "Entry notes"];
+    const cols = ["Date", "Tax year", "Given by", "Organization", "Item", "Category", "Condition", "Qty", "Value each", "Line total", "Guide low", "Guide high", "Guide source", "How valued", "Acquired / cost", "Acknowledgment", "Receipt files", "Entry notes"];
     const lines = [cols.join(",")];
     [...entries].filter(e => e.kind === "noncash").sort((a, b) => (a.date || "").localeCompare(b.date || "")).forEach(e => (e.items || []).forEach(it => {
-      lines.push([e.date, yearOf(e), e.donor, e.org, it.desc, it.category, it.condition, it.qty, num(it.unitValue).toFixed(2), window.Rules.itemValue(it).toFixed(2), isBlank(it.lo) ? "" : it.lo, isBlank(it.hi) ? "" : it.hi, e.howValued || "", e.acquired || "", e.ackReceived ? "Yes" : "No", receiptsFor(e).length, e.notes].map(csvCell).join(","));
+      lines.push([e.date, yearOf(e), e.donor, e.org, it.desc, it.category, it.condition, it.qty, num(it.unitValue).toFixed(2), window.Rules.itemValue(it).toFixed(2), isBlank(it.lo) ? "" : it.lo, isBlank(it.hi) ? "" : it.hi, sourceLabel(it.source), e.howValued || "", e.acquired || "", e.ackReceived ? "Yes" : "No", receiptsFor(e).length, e.notes].map(csvCell).join(","));
     }));
     return lines.join("\n");
   }

@@ -58,6 +58,14 @@ Drag the folder onto the Netlify dashboard, or connect the repo. No build comman
 
 Add a custom domain from either dashboard when you're ready.
 
+## Value guide sources
+
+Every range in `js/fmv.js` carries a source tag: `SA` (Salvation Army Donation Value Guide), `GW` (Goodwill
+Industries International valuation guide, Orange County Goodwill 2023 edition), `SA+GW` (in both; the range
+spans the two) or `EST` (neither guide lists it; a DeductBook estimate). `FMV_SOURCES` records the check date.
+Items picked from the guide keep the tag, which appears in the deduction check and as "Guide source" in the
+itemized CSV. Re-check the ranges against both guides once a year and update the date.
+
 ## Storage limits
 
 Each file is capped at 10 MB (app check plus the bucket's own limit). Each household has a receipt storage

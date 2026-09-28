@@ -324,6 +324,8 @@ td .sub { font-size: 0.8rem; color: var(--muted); }
 .checklist .item .mk { width: 18px; height: 18px; border-radius: 5px; display: grid; place-items: center; font-size: 0.7rem; font-weight: 700; margin-top: 2px; }
 .mk.need { background: var(--warn-soft); color: var(--warn); } .mk.done { background: var(--ok-soft); color: var(--ok); } .mk.na, .mk.opt { background: var(--surface-2); color: var(--muted); }
 .guide-help summary { cursor: pointer; font-weight: 600; }
+.src { display: inline-block; font-size: 0.72rem; padding: 1px 7px; border-radius: 99px; border: 1px solid var(--line-strong); color: var(--ink-2); white-space: nowrap; }
+.src-est { border-style: dashed; color: var(--muted); }
 .more-details summary { cursor: pointer; font-weight: 600; font-size: 0.9rem; color: var(--ink-2); }
 .more-details summary .hint { font-weight: 400; margin-left: 6px; }
 .demo-steps { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }

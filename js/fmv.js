@@ -1,47 +1,61 @@
 // Fair market value guide for commonly donated goods.
-// Ranges are typical thrift-store resale prices drawn from the valuation guides that
-// large charities (Salvation Army, Goodwill) publish. FMV is what a willing buyer would
-// pay a willing seller for the item in its current condition — not what you paid.
-// Adjust within (or outside) the range to match the item's actual condition and age.
+// Every range carries a source tag (4th element), see FMV_SOURCES below:
+//   SA     Salvation Army Donation Value Guide
+//   GW     Goodwill Industries International valuation guide (Orange County Goodwill edition, 2023)
+//   SA+GW  listed by both; the range spans the lower low and the higher high of the two
+//   EST    neither guide lists the item; DeductBook estimate from typical thrift-store resale prices
+// Checked line by line against both guides on 28 September 2026. FMV is what a willing buyer would
+// pay a willing seller for the item in its current condition, not what you paid (IRS Publication 561).
+window.FMV_SOURCES = {
+  SA: { short: "Salvation Army", name: "Salvation Army Donation Value Guide", url: "https://satruck.org/Home/DonationValueGuide", checked: "2026-09-28" },
+  GW: { short: "Goodwill", name: "Goodwill Industries International valuation guide (Orange County Goodwill, 2023 edition)", url: "https://www.ocgoodwill.org/wp-content/uploads/2024/01/Valuation-Guide-2023.pdf", checked: "2026-09-28" },
+  "SA+GW": { short: "Salvation Army + Goodwill", name: "Listed in both the Salvation Army and Goodwill guides; the range spans both", checked: "2026-09-28" },
+  EST: { short: "DeductBook estimate", name: "Not listed in either charity guide; DeductBook estimate from typical thrift-store resale prices. Prefer comparable sales for anything valuable.", checked: "2026-09-28" }
+};
 window.FMV_GUIDE = [
   { cat: "Women's clothing", items: [
-    ["Blouse / top", 3, 12], ["Dress", 4, 20], ["Skirt", 3, 8], ["Pants / slacks", 4, 12], ["Jeans", 4, 15],
-    ["Sweater", 4, 13], ["Suit (2-piece)", 6, 25], ["Coat / overcoat", 10, 40], ["Jacket", 7, 20], ["Shoes (pair)", 3, 30],
-    ["Boots (pair)", 5, 35], ["Handbag / purse", 2, 20], ["Evening dress / formal", 10, 60], ["Swimsuit", 3, 8], ["Nightgown / robe", 3, 12] ] },
+    ["Blouse / top", 2, 12, "SA+GW"], ["Dress", 3, 20, "SA+GW"], ["Skirt", 2, 12, "SA+GW"], ["Pants / slacks", 2, 12, "SA+GW"], ["Jeans", 4, 21, "GW"],
+    ["Sweater", 4, 16, "SA+GW"], ["Suit (2-piece)", 5, 30, "SA+GW"], ["Pants suit", 7, 26, "SA"], ["Coat / overcoat", 7, 41, "SA+GW"], ["Jacket / blazer", 4, 12, "SA+GW"],
+    ["Shoes (pair)", 2, 26, "SA+GW"], ["Boots (pair)", 2, 18, "SA+GW"], ["Handbag / purse", 2, 21, "SA+GW"], ["Evening dress / formal", 10, 62, "SA+GW"], ["Swimsuit", 4, 12, "SA+GW"],
+    ["Nightgown / robe", 2, 12, "SA+GW"], ["Hat", 1, 8, "SA"] ] },
   { cat: "Men's clothing", items: [
-    ["Shirt (dress or casual)", 3, 12], ["T-shirt", 1, 6], ["Pants / slacks", 4, 12], ["Jeans", 4, 15], ["Shorts", 3, 8],
-    ["Sweater", 3, 15], ["Suit (2-piece)", 15, 60], ["Sport coat / blazer", 8, 25], ["Overcoat", 15, 60], ["Jacket", 7, 25],
-    ["Shoes (pair)", 3, 30], ["Boots (pair)", 5, 35], ["Tie", 1, 5], ["Belt", 1, 5] ] },
+    ["Shirt (dress or casual)", 2, 12, "SA+GW"], ["T-shirt", 1, 6, "GW"], ["Pants / slacks", 2, 15, "SA+GW"], ["Jeans", 4, 21, "GW"], ["Shorts", 1, 10, "SA+GW"],
+    ["Sweater", 3, 15, "SA+GW"], ["Suit (2-piece)", 10, 62, "SA+GW"], ["Tuxedo", 10, 62, "SA"], ["Sport coat / blazer", 6, 12, "GW"], ["Overcoat", 16, 62, "SA"],
+    ["Jacket", 8, 26, "SA"], ["Raincoat", 5, 21, "SA"], ["Shoes (pair)", 4, 26, "SA+GW"], ["Boots (pair)", 6, 18, "GW"], ["Pajamas", 2, 10, "SA+GW"],
+    ["Tie", 1, 5, "EST"], ["Belt", 2, 15, "GW"] ] },
   { cat: "Children's clothing", items: [
-    ["Shirt / top", 2, 6], ["Pants / jeans", 2, 10], ["Dress", 3, 12], ["Sweater", 3, 8], ["Coat", 5, 20], ["Snowsuit", 4, 19],
-    ["Shoes (pair)", 3, 10], ["Boots (pair)", 3, 15], ["Pajamas", 2, 6], ["Baby clothing (per piece)", 1, 4] ] },
+    ["Shirt / top", 1, 6, "SA+GW"], ["Pants / jeans", 1, 12, "SA+GW"], ["Dress", 2, 12, "SA+GW"], ["Sweater", 1, 8, "SA+GW"], ["Coat", 3, 21, "SA+GW"],
+    ["Snowsuit", 4, 20, "SA"], ["Shoes (pair)", 2, 9, "SA+GW"], ["Boots (pair)", 2, 21, "SA+GW"], ["Pajamas", 1, 6, "GW"], ["Baby clothing (per piece)", 1, 4, "EST"] ] },
   { cat: "Furniture", items: [
-    ["Sofa / couch", 35, 200], ["Loveseat", 25, 100], ["Upholstered chair", 25, 100], ["Recliner", 25, 120], ["Coffee table", 15, 65],
-    ["End table", 10, 50], ["Dining table", 35, 135], ["Dining chair (each)", 5, 30], ["Dining room set (table + 4-6 chairs)", 150, 900],
-    ["Bed frame + headboard (full/queen)", 50, 170], ["Mattress & box spring (clean)", 25, 100], ["Dresser / chest of drawers", 20, 100], ["Nightstand", 10, 40],
-    ["Desk", 25, 140], ["Bookcase", 15, 75], ["Floor lamp", 8, 35], ["Table lamp", 5, 25], ["Rug (area, 5x8 or larger)", 20, 90], ["Entertainment center / TV stand", 20, 100],
-    ["Crib (must meet current safety standards)", 25, 100], ["Patio set", 25, 150] ] },
+    ["Sofa / couch", 30, 207, "SA+GW"], ["Sleeper sofa (with mattress)", 88, 311, "SA"], ["Loveseat", 25, 100, "EST"], ["Upholstered chair", 26, 104, "SA"], ["Recliner", 25, 120, "EST"],
+    ["Coffee table", 10, 67, "SA+GW"], ["End table", 4, 52, "SA+GW"], ["Dining table", 35, 135, "EST"], ["Dining chair (each)", 3, 15, "SA+GW"], ["Kitchen / dinette set", 36, 176, "SA+GW"],
+    ["Dining room set (complete)", 156, 934, "SA"], ["China cabinet", 89, 311, "SA"], ["Bed frame + headboard (full/queen/king)", 52, 176, "SA"], ["Bed frame (single)", 36, 104, "SA"], ["Mattress & box spring (clean)", 13, 78, "SA"],
+    ["Bedroom set (complete)", 259, 1037, "SA"], ["Dresser / chest of drawers", 20, 104, "SA+GW"], ["Wardrobe / clothes closet", 16, 104, "SA"], ["Nightstand", 10, 40, "EST"], ["Desk", 26, 145, "SA+GW"],
+    ["Bookcase", 15, 75, "EST"], ["Floor lamp", 4, 52, "SA+GW"], ["Table lamp", 4, 78, "SA+GW"], ["Rug (area, 5x8 or larger)", 21, 93, "SA"], ["Entertainment center / TV stand", 20, 100, "EST"],
+    ["Crib (must meet current safety standards)", 26, 104, "SA"], ["High chair", 10, 52, "SA"], ["Playpen", 4, 31, "SA"], ["Patio set", 25, 150, "EST"] ] },
   { cat: "Appliances", items: [
-    ["Refrigerator (working)", 50, 250], ["Range / stove", 50, 200], ["Washing machine", 40, 150], ["Dryer", 45, 100], ["Dishwasher", 30, 125],
-    ["Microwave", 10, 50], ["Window air conditioner", 20, 90], ["Vacuum cleaner", 15, 65], ["Space heater", 5, 25], ["Toaster / small kitchen appliance", 3, 15],
-    ["Coffee maker", 4, 20], ["Blender / mixer", 5, 25], ["Sewing machine", 15, 75] ] },
+    ["Refrigerator (working)", 78, 259, "SA"], ["Freezer", 25, 100, "SA"], ["Range / stove", 52, 156, "SA"], ["Washing machine", 41, 156, "SA"], ["Dryer", 47, 93, "SA"],
+    ["Dishwasher", 30, 125, "EST"], ["Microwave", 10, 50, "SA"], ["Window air conditioner", 21, 93, "SA"], ["Vacuum cleaner", 16, 67, "SA"], ["Space heater", 8, 23, "SA"],
+    ["Toaster / small kitchen appliance", 3, 15, "EST"], ["Coffee maker", 4, 16, "SA+GW"], ["Blender / mixer", 5, 21, "SA"], ["Griddle", 4, 12, "SA+GW"], ["Sewing machine", 15, 88, "SA"] ] },
   { cat: "Electronics", items: [
-    ["Flat-screen TV (working)", 40, 225], ["Laptop (working, recent)", 50, 300], ["Desktop computer", 40, 200], ["Computer monitor", 10, 60],
-    ["Printer", 5, 50], ["Tablet", 20, 120], ["Smartphone (unlocked, working)", 20, 150], ["Stereo / speaker system", 15, 75], ["DVD / Blu-ray player", 5, 20],
-    ["Video game console", 20, 120], ["Camera (digital)", 15, 100], ["Radio / clock radio", 3, 15] ] },
+    ["Flat-screen TV (working)", 78, 233, "SA"], ["Laptop (working, recent)", 50, 300, "EST"], ["Desktop computer (system)", 50, 415, "SA+GW"], ["Computer monitor", 5, 51, "SA+GW"], ["Printer", 5, 155, "SA+GW"],
+    ["Tablet", 25, 150, "SA"], ["eReader", 10, 50, "SA"], ["Smartphone (unlocked, working)", 25, 100, "SA"], ["Stereo / speaker system", 16, 78, "SA"], ["DVD / Blu-ray player", 8, 16, "SA+GW"],
+    ["Video game console", 20, 120, "EST"], ["Camera (digital)", 15, 100, "EST"], ["Radio / clock radio", 2, 52, "SA+GW"] ] },
   { cat: "Sporting goods & outdoor", items: [
-    ["Adult bicycle", 15, 75], ["Child bicycle", 5, 30], ["Golf clubs (full set with bag)", 25, 120], ["Golf club (single)", 2, 25],
-    ["Tennis racket", 2, 15], ["Skis with bindings (pair)", 10, 60], ["Snowboard", 15, 60], ["Treadmill (working)", 50, 200],
-    ["Exercise bike", 20, 90], ["Weight set", 10, 50], ["Camping tent", 10, 60], ["Sleeping bag", 5, 25], ["Fishing rod & reel", 5, 30], ["Kayak / canoe", 50, 250] ] },
+    ["Adult bicycle", 5, 83, "SA"], ["Child bicycle", 5, 30, "EST"], ["Golf clubs (full set with bag)", 25, 120, "EST"], ["Golf club (single)", 2, 26, "SA+GW"], ["Tennis racket", 2, 5, "SA+GW"],
+    ["Ice skates (pair)", 3, 16, "SA+GW"], ["Roller blades (pair)", 3, 16, "SA+GW"], ["Skis with bindings (pair)", 10, 60, "EST"], ["Snowboard", 15, 60, "EST"], ["Treadmill (working)", 50, 200, "EST"],
+    ["Exercise bike", 20, 90, "EST"], ["Weight set", 10, 50, "EST"], ["Camping tent", 10, 60, "EST"], ["Sleeping bag", 5, 25, "EST"], ["Fishing rod & reel", 5, 30, "EST"], ["Kayak / canoe", 50, 250, "EST"] ] },
   { cat: "Household & kitchen", items: [
-    ["Blanket / comforter", 3, 24], ["Bedspread / quilt", 3, 24], ["Sheet set", 2, 8], ["Pillow", 2, 8], ["Towel (bath)", 1, 4],
-    ["Curtains / drapes (pair)", 2, 12], ["Dish set (service for 4+)", 10, 30], ["Glassware (each)", 0.5, 1.5], ["Cookware set (pots & pans)", 5, 30],
-    ["Kitchen utensils (each)", 0.5, 1.5], ["Small decor / vase / picture frame", 1, 10], ["Framed art / print", 5, 40], ["Christmas / holiday decor (box)", 3, 20],
-    ["Luggage (suitcase)", 5, 25], ["Tools (hand tool, each)", 1, 8], ["Power tool (working)", 10, 60], ["Lawn mower (working)", 25, 100] ] },
+    ["Blanket / comforter", 2, 16, "SA+GW"], ["Bedspread / quilt", 3, 25, "SA+GW"], ["Sheet set", 2, 8, "SA+GW"], ["Pillow", 2, 8, "SA"], ["Towel (bath)", 0.5, 4, "SA"],
+    ["Curtains / drapes (pair)", 2, 41, "SA"], ["Dish set (service for 4+)", 10, 30, "EST"], ["Plate (each)", 0.5, 3, "SA+GW"], ["Glassware (each)", 0.5, 2, "SA+GW"], ["Pot or pan (each)", 1, 3, "SA+GW"],
+    ["Cookware set (pots & pans)", 5, 30, "EST"], ["Bakeware (each)", 1, 3, "SA+GW"], ["Kitchen utensils (each)", 0.5, 2, "SA+GW"], ["Small decor / vase / picture frame", 1, 10, "EST"], ["Framed art / print / painting", 5, 207, "SA"],
+    ["Christmas / holiday decor (box)", 3, 20, "EST"], ["Luggage (suitcase)", 5, 16, "SA+GW"], ["Umbrella", 2, 6, "SA+GW"], ["Tools (hand tool, each)", 1, 8, "EST"], ["Power tool (working)", 10, 60, "EST"],
+    ["Lawn mower (working)", 26, 104, "SA"], ["Lawn mower (riding)", 104, 311, "SA"] ] },
   { cat: "Books, media & toys", items: [
-    ["Hardcover book", 1, 3], ["Paperback book", 0.75, 2], ["Textbook (recent edition)", 2, 15], ["Children's book", 0.5, 2],
-    ["DVD / Blu-ray", 1, 3], ["CD", 1, 2], ["Vinyl record", 1, 5], ["Video game", 2, 15], ["Board game (complete)", 2, 8], ["Puzzle (complete)", 1, 3],
-    ["Stuffed animal", 0.5, 3], ["Toy (small)", 0.5, 3], ["Toy (large, ride-on or playset)", 5, 40], ["Doll / action figure", 1, 5], ["Stroller", 5, 40], ["Car seat (unexpired, never in a crash)", 10, 40] ] }
+    ["Hardcover book", 1, 3, "SA+GW"], ["Paperback book", 0.75, 2, "SA+GW"], ["Textbook (recent edition)", 2, 15, "EST"], ["Children's book", 0.5, 2, "EST"], ["DVD / Blu-ray", 2, 5, "SA+GW"],
+    ["CD", 2, 5, "SA+GW"], ["Vinyl record", 1, 1, "GW"], ["Video game", 2, 15, "EST"], ["Board game (complete)", 1, 3, "SA+GW"], ["Puzzle (complete)", 0.5, 0.5, "GW"],
+    ["Stuffed animal", 0.5, 1, "SA+GW"], ["Toy (small)", 0.5, 3, "EST"], ["Toy (large, ride-on or playset)", 5, 40, "EST"], ["Doll / action figure", 1, 5, "EST"], ["Stroller / carriage", 5, 100, "SA"],
+    ["Car seat (unexpired, never in a crash)", 10, 40, "EST"] ] }
 ];
 
 window.FMV_CONDITIONS = [
