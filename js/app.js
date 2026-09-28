@@ -287,7 +287,7 @@
     const ackLabel = $("f_ack").closest("label"); if (ackLabel) ackLabel.hidden = !(r.gross >= RULES.ACK_THRESHOLD || e.ackReceived);
     const blank = !e.org && r.gross === 0 && !num(e.miles) && !(e.items || []).some(it => it.desc);
     const headline = blank ? "Enter the donation details to see an estimate." : r.status === "stop" ? "Not eligible as entered" : r.status === "docs" ? "Eligible — records needed before filing" : "Eligible, records complete";
-    if (!blank && currentKind === "noncash") { const srcs = [...new Set((e.items || []).map(it => it.source).filter(Boolean))]; if (srcs.length) r.flags.push({ level: "info", text: "Guide values from: " + srcs.map(sourceLabel).join("; ") + ". Adjust for the item's actual condition and age." }); }
+    if (!blank && currentKind === "noncash") { const srcs = [...new Set((e.items || []).map(it => it.source).filter(Boolean))]; if (srcs.length) r.flags.push({ level: "info", text: "Guide values from: " + srcs.map(sourceLabel).join("; ") + ". Ranges are starting points, not appraisals: choose a value supported by the item's condition and resale evidence." }); }
     const flags = blank ? [{ level: "info", text: currentKind === "mileage" ? "Log the miles and the purpose of the trip. The charitable rate is 14¢ per mile." : "As you fill in the gift, the checker lists the records the IRS expects and any reductions that apply." }] : r.flags.length ? r.flags : [{ level: "info", text: "Nothing further needed." }];
     $("insight").innerHTML = `<div class="eyebrow">Deduction check</div>
       <div class="verdict ${blank ? "" : r.status}">${blank ? "—" : money(r.deductible)}</div>
