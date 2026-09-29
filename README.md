@@ -107,7 +107,9 @@ accountant. Setup takes about ten minutes:
    `receipts` storage bucket, and the helper functions.
 2. In **Authentication → URL Configuration**, set the Site URL to where the app is hosted (for
    example `https://deductbook.com/`) and add it and `https://www.deductbook.com/**` to the redirect allow list.
-   Magic-link email sign-in is on by default; no password provider is needed.
+   Sign-in is by email: the message carries a 6-digit code (typed into the app, `verifyOtp`) and a link.
+   The Magic Link and Confirm signup templates must include `{{ .Token }}` for the code to appear; the
+   production project's templates do.
 3. **Email delivery (required for public sign-in).** Supabase's built-in email sender only delivers
    to your own project team and is for testing. In **Authentication → SMTP Settings**, enable custom
    SMTP with a provider such as Resend, using a verified sender address. Without this, magic links
@@ -180,7 +182,7 @@ How it behaves:
   them, via short-lived signed links.
 - **Backups and exports** still work in cloud mode (Replace and Delete-all are disabled on a shared
   ledger). Merge from a backup uploads its receipts under fresh ids.
-- **Account recovery** is the sign-in email itself: a new magic link restores access.
+- **Account recovery** is the sign-in email itself: a new code or link restores access.
 - **Account switching on one browser.** Unsent edits are parked under the user and household they
   belong to, in storage and in memory. Another person signing in, a retry, a reconnect, or switching
   households can never submit them; they resume only when that person opens that household again.
