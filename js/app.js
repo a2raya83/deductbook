@@ -870,16 +870,33 @@
   function accountModal() {
     const user = Cloud.user();
     if (!user) {
-      const close = modal(`<h3>Sign in</h3><p class="small">We'll email you a sign-in link. No password to remember. Your records then follow you to any device, and you can share a ledger with your household.</p>${planNotice()}
-        <div class="field w12" style="margin-top:10px"><label for="siEmail">Email</label><input id="siEmail" type="email" autocomplete="email" placeholder="you@example.com"></div>
-        <div class="actions"><button class="btn primary" id="siGo" type="button">Email me a link</button><button class="btn" data-close type="button">Cancel</button></div><p class="small" id="siMsg"></p>
+      const close = modal(`<h3>Sign in</h3><p class="small">We'll email you a 6-digit code. No password to remember. Your records then follow you to any device, and you can share a ledger with your household.</p>${planNotice()}
+        <div id="siStep1">
+          <div class="field w12" style="margin-top:10px"><label for="siEmail">Email</label><input id="siEmail" type="email" autocomplete="email" placeholder="you@example.com"></div>
+          <div class="actions"><button class="btn primary" id="siGo" type="button">Email me a code</button><button class="btn" data-close type="button">Cancel</button></div>
+        </div>
+        <div id="siStep2" hidden>
+          <div class="field w12" style="margin-top:10px"><label for="siCode">Code from the email</label><input id="siCode" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="6" placeholder="123456" style="letter-spacing:0.2em;font-size:1.2rem"><span class="hint">Sent to <b id="siSentTo"></b>. The email also has a link that works on this device.</span></div>
+          <div class="actions"><button class="btn primary" id="siVerify" type="button">Sign in</button><button class="btn" id="siBack" type="button">Use a different email</button><button class="btn" data-close type="button">Cancel</button></div>
+        </div>
+        <p class="small" id="siMsg" aria-live="polite"></p>
         <p class="small muted">Trouble signing in? See <a href="help.html#problems" target="_blank" rel="noopener">Help</a>${CFG.contactEmail ? ` or email <a href="mailto:${esc(CFG.contactEmail)}">${esc(CFG.contactEmail)}</a>` : ""}.</p>`);
+      let siEmailSent = "";
       $("siGo").addEventListener("click", async () => {
         const email = $("siEmail").value.trim(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { $("siMsg").textContent = "Enter a valid email address."; return; }
-        $("siGo").disabled = true;
-        try { await Cloud.signInWithEmail(email); $("siMsg").textContent = "Check your email and open the link on this device. You can close this."; }
+        $("siGo").disabled = true; $("siMsg").textContent = "Sending…";
+        try { await Cloud.signInWithEmail(email); siEmailSent = email; $("siSentTo").textContent = email; $("siStep1").hidden = true; $("siStep2").hidden = false; $("siMsg").textContent = "Check your email. Codes expire after an hour."; setTimeout(() => $("siCode").focus(), 50); }
         catch (e) { $("siMsg").textContent = e.message; $("siGo").disabled = false; }
       });
+      const verify = async () => {
+        $("siVerify").disabled = true; $("siMsg").textContent = "Checking…";
+        try { await Cloud.verifyEmailCode(siEmailSent, $("siCode").value); $("siMsg").textContent = "Signed in."; close(); }
+        catch (e) { $("siMsg").textContent = e.message; $("siVerify").disabled = false; }
+      };
+      $("siVerify").addEventListener("click", verify);
+      $("siCode").addEventListener("keydown", ev => { if (ev.key === "Enter") verify(); });
+      $("siCode").addEventListener("input", () => { if ($("siCode").value.replace(/\D/g, "").length === 6) verify(); });
+      $("siBack").addEventListener("click", () => { $("siStep2").hidden = true; $("siStep1").hidden = false; $("siGo").disabled = false; $("siMsg").textContent = ""; });
       setTimeout(() => $("siEmail").focus(), 50);
       return;
     }

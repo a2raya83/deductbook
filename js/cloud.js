@@ -43,6 +43,16 @@
     if (error) throw new Error(error.message);
     return true;
   };
+  // The email also carries a 6-digit code; typing it signs in without leaving the page (handy when the
+  // link would open in a different browser than the one you're using).
+  Cloud.verifyEmailCode = async function (email, code) {
+    const token = String(code || "").replace(/\D/g, "");
+    if (token.length < 6) throw new Error("Enter the 6-digit code from the email.");
+    let { data, error } = await sb.auth.verifyOtp({ email, token, type: "email" });
+    if (error && /signup|not found|invalid/i.test(error.message)) ({ data, error } = await sb.auth.verifyOtp({ email, token, type: "signup" }));   // first-ever sign-in uses the signup template
+    if (error) throw new Error(/expired|invalid/i.test(error.message) ? "That code didn't work. Codes expire after an hour; request a new one if needed." : error.message);
+    return data && data.session ? data.session.user : null;
+  };
   Cloud.signOut = async function () {
     newGeneration();                                     // park unsent edits under this user's key; nobody else can drain them
     await unsubscribe(); Cloud.currentHousehold = null; known = new Map();

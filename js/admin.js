@@ -30,7 +30,11 @@
   $("adGo").addEventListener("click", async () => {
     const email = $("adEmail").value.trim(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { $("adMsg").textContent = "Enter a valid email address."; return; }
     $("adGo").disabled = true;
-    try { await Cloud.signInWithEmail(email, location.href.split("#")[0]); $("adMsg").textContent = "Check your email and open the link on this device."; }
+    try {
+      await Cloud.signInWithEmail(email);
+      $("adMsg").innerHTML = 'Check your email for a 6-digit code. <input id="adCode" type="text" inputmode="numeric" maxlength="6" placeholder="123456" style="margin:0 6px;width:7em"> <button class="btn sm primary" id="adVerify" type="button">Sign in</button>';
+      $("adVerify").addEventListener("click", async () => { try { await Cloud.verifyEmailCode(email, $("adCode").value); } catch (e) { alert(e.message); } });
+    }
     catch (e) { $("adMsg").textContent = e.message; $("adGo").disabled = false; }
   });
   $("signOut").addEventListener("click", () => Cloud.signOut());
