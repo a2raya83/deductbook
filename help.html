@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>DeductBook help</title>
+<meta name="description" content="Answers to common questions about using DeductBook: recording donations, receipts, the deduction check, household accounts, backups and moving from ItsDeductible.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap">
+<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/landing.css">
+<style>
+  .help { gap: 0; padding-top: 26px; }
+  .help article { max-width: 76ch; display: grid; gap: 10px; }
+  .help h1 { font-size: 2rem; }
+  .help h2 { font-size: 1.05rem; margin-top: 22px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+  .help .search { margin: 6px 0 4px; }
+  .help .search input { width: 100%; }
+  .qa { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); padding: 10px 14px; }
+  .qa summary { cursor: pointer; font-weight: 600; }
+  .qa summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  .qa div { margin-top: 8px; color: var(--ink-2); line-height: 1.6; font-size: 0.95rem; }
+  .qa ol, .qa ul { padding-left: 20px; margin: 6px 0; }
+  .qa p + p { margin-top: 8px; }
+  .qa[hidden] { display: none; }
+  #noMatch { display: none; color: var(--muted); }
+  .help nav.toc { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; font-size: 0.85rem; }
+  .help nav.toc a { color: var(--ink-2); text-decoration: none; border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; background: var(--surface); }
+</style>
+</head>
+<body>
+<header class="appbar land-header"><div class="appbar-inner"><a class="logo" href="./"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v16H6.5A1.5 1.5 0 0 0 5 20.5z"/><path d="M5 20.5V4.5"/><path d="M14 3v8l-2.2-1.5L9.6 11V3"/></svg><span class="name">Deduct<b>Book</b></span></a><div class="spacer"></div><a class="btn sm" href="app.html">Open DeductBook</a></div></header>
+<main class="land help">
+  <article>
+    <h1 class="serif">Help</h1>
+    <p class="small muted">Short answers about using DeductBook. Nothing here is tax advice; for your own return, confirm with a qualified preparer.</p>
+    <div class="search"><input type="search" id="q" placeholder="Search help, e.g. receipt, invite, ItsDeductible…" aria-label="Search help"></div>
+    <nav class="toc" aria-label="Sections"><a href="#start">Getting started</a><a href="#records">Records &amp; receipts</a><a href="#check">Deduction check</a><a href="#guide">Value guide</a><a href="#household">Household accounts</a><a href="#data">Backups &amp; data</a><a href="#itsdeductible">From ItsDeductible</a><a href="#problems">Problems</a><a href="#contact">Contact</a></nav>
+    <p id="noMatch">Nothing matches that. Try a different word, or <a href="support.html">write to support</a>.</p>
+
+    <h2 id="start">Getting started</h2>
+    <details class="qa"><summary>How do I record a donation?</summary><div><p>Open <b>Donations</b> and choose <b>Add donation</b>. Pick the kind of gift, enter the date, who gave it, the organization and the amount or items, then <b>Save</b>. The deduction check beside the form updates as you type and lists any record you still need.</p></div></details>
+    <details class="qa"><summary>What kinds of donations can I track?</summary><div><ul><li><b>Cash / check / card:</b> any money gift, including online and payroll giving.</li><li><b>Goods:</b> clothing, furniture, household items and the like, listed item by item with a value each.</li><li><b>Stock / securities:</b> shares given directly to a charity, with cost basis and holding period.</li><li><b>Volunteer mileage:</b> miles driven for a charity at 14¢ a mile, plus parking and tolls.</li><li><b>Volunteer expenses:</b> supplies, uniforms, travel and meals while volunteering, with the rules for what counts.</li></ul></div></details>
+    <details class="qa"><summary>What does "Given by" mean?</summary><div><p>Which household member gave the gift: for example Maria, David, or Joint for a shared gift. It is not the charity. The tax summary can then total gifts by person, which matters if you file separately.</p></div></details>
+    <details class="qa"><summary>How do I edit or delete a donation?</summary><div><p>In <b>Donations</b>, find the row and choose <b>Edit</b> or <b>Delete</b>. Delete asks you to confirm with a second click. Deleting an entry also removes any receipt that no other entry uses.</p></div></details>
+    <details class="qa"><summary>How do I switch tax years?</summary><div><p>Use the <b>Tax year</b> picker in the header. Every view, the deduction check and the exports follow the year you choose. "All years" shows everything with a filing checklist per year.</p></div></details>
+    <details class="qa"><summary>Is there a way to try it without entering my own data?</summary><div><p>Yes. <a href="app.html#sample">Open the sample ledger</a>. It is a fictional set of donations kept completely apart from your own records, with receipts you can open. The banner offers a short tour and a <b>Reset demo</b> button.</p></div></details>
+
+    <h2 id="records">Records and receipts</h2>
+    <details class="qa"><summary>What records does the IRS expect?</summary><div><ul><li>Any money gift: a bank record (statement, cancelled check, card statement, pay stub) or a written receipt from the charity, whatever the amount.</li><li>Any single gift or expense of <b>$250 or more</b>: a written acknowledgment from the charity that states what you gave and whether you received anything in return. Get it before you file.</li><li>Goods: a receipt from the charity with its name, the date and location, and a description of what you gave, unless it was genuinely impractical (an unattended drop box).</li><li>Goods worth more than $500 in a year: Form 8283. Any single item, or group of similar items, over $5,000: a qualified appraisal.</li></ul><p>The deduction check tells you which of these applies to the entry you are looking at.</p></div></details>
+    <details class="qa"><summary>Do I have to upload the receipt?</summary><div><p>No. Tick <b>I have a receipt or record for this</b> if the paper is in a folder at home. Attaching a photo is optional; it keeps the receipt with the entry, in the backup, and in the household ledger where your spouse or accountant can see it.</p></div></details>
+    <details class="qa"><summary>What files can I attach, and how big?</summary><div><p>Photos, PDFs, Word and Excel files, CSV, text, email files and iPhone HEIC photos, up to <b>10 MB each</b>. Photos are compressed automatically. A household has <b>250 MB</b> of receipt storage during the beta, which is years of receipts for most families; the Receipts page shows how much is used.</p></div></details>
+    <details class="qa"><summary>How do I attach a receipt from my phone?</summary><div><p>Open the donation, tap the receipt area and the camera opens. Or use <b>Photo of a receipt</b> in the bar at the bottom of the screen, which starts a new donation with the photo already attached.</p></div></details>
+    <details class="qa"><summary>Where do receipts go when I open them?</summary><div><p>Images open in a viewer inside DeductBook. PDFs open in a new tab with the file's own name. Other files download with their original name. In a household ledger, files are fetched from private storage; there is no public link to them.</p></div></details>
+    <details class="qa"><summary>The Receipts page lists an entry "without a digital attachment". Is that a problem?</summary><div><p>No. It means the entry's records are declared on paper and no photo is attached. It is optional housekeeping, not a missing tax record. Entries that are actually missing a required record are listed separately, above.</p></div></details>
+
+    <h2 id="check">The deduction check</h2>
+    <details class="qa"><summary>What do the statuses mean?</summary><div><ul><li><b>Records OK:</b> the entry has every record the rules require.</li><li><b>Acknowledgment needed</b> or <b>Receipt needed:</b> a required record is missing. The entry still counts in the estimate; get the record before you file.</li><li><b>Not eligible:</b> as entered, the rules exclude it, for example lunch after a local volunteer shift. It is left out of the estimate. Edit the entry if the details are wrong.</li></ul></div></details>
+    <details class="qa"><summary>Why is the estimate lower than what I recorded?</summary><div><p>Because the rules reduce some gifts: value you received in return (gala tickets, auction items), items in fair condition, stock held a year or less limited to its cost basis, and expenses that don't qualify. The deduction check lists each reduction with the reason.</p></div></details>
+    <details class="qa"><summary>Is the estimate what I can deduct?</summary><div><p>It is an estimate before the limits that depend on your return: the 0.5%-of-income floor from 2026, the annual ceilings of 60% and 30% of income, and whether you itemize at all. DeductBook does not know your income or your return, so the final number is your preparer's or your tax software's.</p></div></details>
+    <details class="qa"><summary>Which volunteer costs count?</summary><div><p>Driving for the charity at 14¢ a mile plus parking and tolls; supplies you bought for the charity's work; a required uniform with no everyday use; travel, lodging and meals only when you are away from home overnight on the charity's business with no significant vacation element. The value of your time never counts. The <b>Rules</b> page in the app has the full list.</p></div></details>
+
+    <h2 id="guide">The value guide</h2>
+    <details class="qa"><summary>Where do the values in the guide come from?</summary><div><p>From the published valuation guides of the Salvation Army and Goodwill, checked line by line on the date shown under the table. Each row shows its source. Rows marked <b>DeductBook estimate</b> are items neither guide lists. The guide page explains the method in full.</p></div></details>
+    <details class="qa"><summary>Are the ranges what I should claim?</summary><div><p>They are starting points, not appraisals. Choose a value supported by the item's condition and relevant resale evidence; appraisal requirements may apply. Picking an item enters the good-condition value; change the condition on the row to move it. Fair-condition clothing and household items are generally not deductible at all.</p></div></details>
+
+    <h2 id="household">Household accounts</h2>
+    <details class="qa"><summary>Do I need an account?</summary><div><p>No. Without one, everything stays in the browser you are using. Sign in when you want your records on more than one device or shared with your household.</p></div></details>
+    <details class="qa"><summary>How does signing in work? There's no password.</summary><div><p>Enter your email and open the link we send. That link signs you in on the device where you open it. Links expire after a short time; request another if needed. The first time, the message is titled "Confirm your email address"; after that, "Your sign-in link".</p></div></details>
+    <details class="qa"><summary>What happens to the records already on my device when I sign in?</summary><div><p>DeductBook offers to move them into your household ledger, receipts included, and verifies every file copied before it reports success. Nothing is deleted from the device until you choose to clear it.</p></div></details>
+    <details class="qa"><summary>How do I share the ledger with my spouse or accountant?</summary><div><p>Open your household name in the header, choose <b>Invite</b>, enter their email and a role. <b>Member</b> can add and edit; <b>Viewer</b> can only read and export, which suits an accountant. They accept by opening the invitation link while signed in with that same email.</p></div></details>
+    <details class="qa"><summary>Can two people edit at the same time?</summary><div><p>Yes. Changes appear on other devices as they are saved. If two people edit the same entry at once, both versions are kept and marked for review so nothing is silently overwritten.</p></div></details>
+    <details class="qa"><summary>What does the household plan cost?</summary><div><p>Nothing during the beta. The planned price afterwards is $19 a year per household, covering everyone you invite. You will be told the date and price before anything changes. If you ever stop paying, your records and exports stay available; only adding and sharing pause.</p></div></details>
+
+    <h2 id="data">Backups and data</h2>
+    <details class="qa"><summary>How do I back up?</summary><div><p><b>Backup &amp; data</b> in the header downloads one file with every entry and every receipt. Keep it somewhere safe, especially if you use DeductBook without an account, because a cleared browser loses device-only data.</p></div></details>
+    <details class="qa"><summary>What is the difference between Merge and Replace when restoring?</summary><div><p><b>Merge</b> keeps what you have and adds the file's entries; where both have the same entry, the more recently edited one wins and the other is kept for review. <b>Replace</b> wipes the browser first and only proceeds if every receipt in the file can be read.</p></div></details>
+    <details class="qa"><summary>What can I export?</summary><div><p>From <b>Tax summary</b>: a CSV of every donation, an itemized CSV of donated goods for Form 8283 with the guide source for each value, a printable summary, and a copy-as-text version.</p></div></details>
+    <details class="qa"><summary>Who can see my data?</summary><div><p>Device-only: nobody; it never leaves your browser. Household ledger: the people you invite, with the roles you give them. The operator's admin view shows sign-ups and storage totals only, never amounts, organizations or receipts. See the <a href="privacy.html">privacy page</a>.</p></div></details>
+    <details class="qa"><summary>How do I delete everything?</summary><div><p>Device-only: <b>Backup &amp; data</b>, then <b>Delete all data</b>. Household: write to support from the address you sign in with and name the household; we remove its entries and files and confirm by reply.</p></div></details>
+
+    <h2 id="itsdeductible">Coming from ItsDeductible</h2>
+    <details class="qa" id="itsdeductible-export" open><summary>How do I get my data out of ItsDeductible?</summary><div><p>Intuit closed ItsDeductible on October 21, 2025, so the old site can't export any more. Your data is still available through your Intuit account's privacy tools:</p><ol><li>Sign in at <b>accounts.intuit.com</b> with the login you used for ItsDeductible.</li><li>Open <b>Data &amp; privacy</b> in the left sidebar.</li><li>Under <b>Data privacy</b>, choose <b>Download</b> and submit the request.</li><li>Wait for Intuit's email; it usually takes several days, sometimes up to two weeks.</li><li>Follow the <b>Download my data</b> link in that email to get a ZIP file.</li></ol><p>Inside the ZIP, under <i>SharedData → ItsDeductible</i>, is <b>ItsDeductibleOnline.xlsx</b>, a spreadsheet with your donation history across all years: items, cash, mileage and stock. That is the file DeductBook imports.</p></div></details>
+    <details class="qa"><summary>How do I import it into DeductBook?</summary><div><ol><li>Open DeductBook. If you want the donations in a household ledger, sign in first.</li><li>Choose <b>Backup &amp; data</b> in the header, then <b>Import from ItsDeductible or a spreadsheet</b>, and pick ItsDeductibleOnline.xlsx.</li><li>DeductBook reads each sheet and guesses which column is the date, the charity, the item, the value and so on. Check the summary; if a column was guessed wrong, pick the right one under <b>Columns</b>. A sheet you don't want can be skipped.</li><li>Choose <b>Import</b>. Goods given to the same charity on the same day become one donation with several items, the way ItsDeductible grouped them.</li></ol><p>Importing the same file twice adds nothing twice. Any .csv or .xlsx with a header row works the same way, so a spreadsheet of your own imports too.</p></div></details>
+    <details class="qa"><summary>What carries over, and what doesn't?</summary><div><p><b>Carries over:</b> dates, charities, item descriptions, quantities, conditions and values, cash amounts, miles, stock symbols and values.</p><p><b>Doesn't:</b> receipts and acknowledgment letters (they were never in the export), how each cash gift was paid if the export omits it, and stock cost basis and holding period if they are missing. Imported donations are therefore marked as needing records. Open each one, tick the records you have, and fill in anything missing. The deduction check shows exactly what is still open per year.</p></div></details>
+
+    <h2 id="problems">Problems</h2>
+    <details class="qa"><summary>The sign-in email didn't arrive.</summary><div><p>Check spam or promotions, then request another link. Links are sent from no-reply@mail.deductbook.com; adding that address to your contacts helps. If nothing arrives in ten minutes, <a href="support.html">write to support</a> with the address you used.</p></div></details>
+    <details class="qa"><summary>The invitation says it was sent to a different address.</summary><div><p>Invitations are tied to the email they were sent to. Sign in with exactly that address, or ask the household owner to send a new invitation to the address you use.</p></div></details>
+    <details class="qa"><summary>A PDF or file won't open.</summary><div><p>Files open in a new tab, so allow pop-ups for deductbook.com if your browser blocks them. On a phone, the file may open in the browser's own viewer or download instead.</p></div></details>
+    <details class="qa"><summary>It says the household's storage is full.</summary><div><p>The household has used its 250 MB receipt allowance. Delete attachments you no longer need from the Receipts page, or write to support if you genuinely need more.</p></div></details>
+    <details class="qa"><summary>A total looks wrong.</summary><div><p>Open the entry. The deduction check beside the form lists every reduction and every missing record with its reason. Entries kept for review after a conflict or an import are not counted until you choose which version to keep.</p></div></details>
+
+    <h2 id="contact">Contact</h2>
+    <details class="qa" open><summary>How do I reach a person?</summary><div><p id="helpContact">Email <a href="mailto:support@deductbook.com">support@deductbook.com</a>. It goes to a private mailbox, and during the beta we answer within a couple of days. Please don't send receipts or account details in a first message; describe the problem and we'll ask for what we need.</p></div></details>
+  </article>
+</main>
+<footer class="land-footer"><div class="inner"><span>© 2026 Nineveh Ventures · DeductBook</span><span><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="support.html">Support</a></span></div></footer>
+<script src="js/config.js"></script>
+<script src="js/config.local.js"></script>
+<script>
+  (function () {
+    var e = window.SITE_CONFIG && window.SITE_CONFIG.contactEmail;
+    if (e) { var safe = e.replace(/[<>&"]/g, ""); document.getElementById("helpContact").innerHTML = 'Email <a href="mailto:' + safe + '">' + safe + '</a>. It goes to a private mailbox, and during the beta we answer within a couple of days. Please don\'t send receipts or account details in a first message; describe the problem and we\'ll ask for what we need.'; }
+    var q = document.getElementById("q"), items = Array.prototype.slice.call(document.querySelectorAll(".qa")), heads = Array.prototype.slice.call(document.querySelectorAll(".help h2")), none = document.getElementById("noMatch");
+    function filter() {
+      var t = q.value.trim().toLowerCase(), shown = 0;
+      items.forEach(function (d) { var hit = !t || d.textContent.toLowerCase().indexOf(t) >= 0; d.hidden = !hit; if (hit) shown++; if (t && hit) d.open = true; });
+      heads.forEach(function (h) { var n = h.nextElementSibling, any = false; while (n && n.tagName !== "H2") { if (n.classList && n.classList.contains("qa") && !n.hidden) any = true; n = n.nextElementSibling; } h.hidden = !!t && !any; });
+      none.style.display = shown ? "none" : "block";
+    }
+    q.addEventListener("input", filter);
+    if (location.hash) { var el = document.querySelector(location.hash); if (el && el.classList.contains("qa")) el.open = true; }
+    var p = new URLSearchParams(location.search).get("q"); if (p) { q.value = p; filter(); }
+  })();
+</script>
+</body>
+</html>

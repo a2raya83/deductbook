@@ -58,6 +58,16 @@ Drag the folder onto the Netlify dashboard, or connect the repo. No build comman
 
 Add a custom domain from either dashboard when you're ready.
 
+## Importing from ItsDeductible or a spreadsheet
+
+`js/import.js` reads `.csv` directly and `.xlsx` through SheetJS (loaded from cdnjs only when needed). It finds the
+header row on each sheet, guesses fields from header text (`FIELDS` patterns), decides the sheet's kind from its
+name or columns, and shows the guesses for correction before importing. Goods rows with the same date and charity
+become one entry with several items; ids are hashes of the row content so a second import adds nothing. Imported
+entries start with no records declared. The exact headers of Intuit's `ItsDeductibleOnline.xlsx` are not
+published; `test/fixtures/itsdeductible-sample.csv` is the header set we test against, and the mapping UI covers
+the rest. The Help page (`help.html`) documents the Intuit export steps.
+
 ## Value guide sources
 
 Every range in `js/fmv.js` carries a source tag: `SA` (Salvation Army Donation Value Guide), `GW` (Goodwill

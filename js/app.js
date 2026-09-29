@@ -650,8 +650,28 @@
       <p class="small" style="margin:6px 0 0">Merge keeps your data and adds the file's entries; when both have the same entry, the more recently edited one wins. Replace wipes this browser first and only proceeds if every receipt in the file can be read.</p>
       <div class="actions" style="margin-top:8px"><label class="btn">Merge from file <input type="file" id="bkImport" accept="application/json,.json" hidden></label><label class="btn danger">Replace everything from file <input type="file" id="bkReplace" accept="application/json,.json" hidden></label></div>
       <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
+      <h3>Import from ItsDeductible or a spreadsheet</h3>
+      <p class="small" style="margin:6px 0 0">Reads ItsDeductibleOnline.xlsx from Intuit's data export, or any .csv/.xlsx with a header row. You check the recognised columns before anything is added. <a href="help.html#itsdeductible" target="_blank" rel="noopener">How to get the export</a>.</p>
+      <div class="actions" style="margin-top:8px"><label class="btn">Import spreadsheet <input type="file" id="bkSheet" accept=".xlsx,.xls,.csv,.txt,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" hidden></label></div>
+      <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
       <div class="actions" style="margin-top:0"><button class="btn" id="bkSamples" type="button">Load sample entries</button><button class="btn danger" id="bkClear" type="button">Delete all data</button><button class="btn" data-close type="button" style="margin-left:auto">Close</button></div>`);
-    if (cloudMode) { $("bkReplace").parentElement.hidden = true; $("bkClear").hidden = true; $("bkSamples").hidden = readOnly(); }
+    if (cloudMode) { $("bkReplace").parentElement.hidden = true; $("bkClear").hidden = true; $("bkSamples").hidden = readOnly(); $("bkSheet").parentElement.hidden = readOnly(); }
+    $("bkSheet").addEventListener("change", async ev => {
+      const f = ev.target.files[0]; ev.target.value = ""; if (!f) return;
+      close();
+      window.ImportSheet.open(f, { modal, toast, addEntries: async entries => {
+        const have = new Set(state.entries.map(e => e.id));
+        const fresh = entries.filter(e => !have.has(e.id)).map(e => window.Store.sanitizeEntry(e));
+        const before = state.entries;
+        state.entries = before.concat(fresh);
+        if (!persist()) { state.entries = before; throw new Error("Couldn't save the imported donations."); }
+        // Show the year the import landed in when nothing arrived for the year on screen.
+        const yrs = [...new Set(fresh.map(yearOf).filter(Boolean))].sort().reverse();
+        if (yrs.length && year !== "all" && !yrs.includes(String(year))) { year = yrs[0]; try { localStorage.setItem("gl_year", year); } catch (e) {} }
+        renderYearPicker(); renderAll(); if (currentView !== "ledger") showView("ledger");
+        return { added: fresh.length, existing: entries.length - fresh.length };
+      } });
+    });
     const makeBackup = async () => { try { return await (cloudMode ? Cloud.exportBackup(state) : window.Store.exportBackup(state)); } catch (e) { toast(e.message || "Backup failed", true); return null; } };
     $("bkDownload").addEventListener("click", async () => { const b = await makeBackup(); if (!b) return; download(`deductbook-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(b), "application/json"); toast(`Backup started: ${b.counts.entries} entries, ${b.counts.receipts} receipts${b.counts.missingReceiptFiles ? ` (${b.counts.missingReceiptFiles} referenced files were not found)` : ""}`, true); });
     $("bkCopy").addEventListener("click", async () => { const b = await makeBackup(); if (!b) return; toast((await copyText(JSON.stringify(b))) ? `Backup copied: ${b.counts.entries} entries, ${b.counts.receipts} receipts` : "Copy blocked by the browser", true); });
@@ -853,7 +873,7 @@
       const close = modal(`<h3>Sign in</h3><p class="small">We'll email you a sign-in link. No password to remember. Your records then follow you to any device, and you can share a ledger with your household.</p>${planNotice()}
         <div class="field w12" style="margin-top:10px"><label for="siEmail">Email</label><input id="siEmail" type="email" autocomplete="email" placeholder="you@example.com"></div>
         <div class="actions"><button class="btn primary" id="siGo" type="button">Email me a link</button><button class="btn" data-close type="button">Cancel</button></div><p class="small" id="siMsg"></p>
-        ${CFG.contactEmail ? `<p class="small muted">Trouble signing in? Email <a href="mailto:${esc(CFG.contactEmail)}">${esc(CFG.contactEmail)}</a>.</p>` : ""}`);
+        <p class="small muted">Trouble signing in? See <a href="help.html#problems" target="_blank" rel="noopener">Help</a>${CFG.contactEmail ? ` or email <a href="mailto:${esc(CFG.contactEmail)}">${esc(CFG.contactEmail)}</a>` : ""}.</p>`);
       $("siGo").addEventListener("click", async () => {
         const email = $("siEmail").value.trim(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { $("siMsg").textContent = "Enter a valid email address."; return; }
         $("siGo").disabled = true;
