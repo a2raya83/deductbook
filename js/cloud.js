@@ -26,12 +26,14 @@
     session = data.session || null;
     sb.auth.onAuthStateChange((_event, s) => {
       // Activity for the admin overview: a visit is recorded when a session opens (deduplicated server-side).
-      if (s && s.user && (_event === "SIGNED_IN" || _event === "INITIAL_SESSION")) sb.rpc("record_sign_in", { p_agent: navigator.userAgent }).then(() => {}, () => {});
+      // Nothing that talks to Supabase runs inside this callback: supabase-js holds its auth lock while it emits
+      // the event, so a query started here (a code sign-in, for instance) would wait on itself. Defer instead.
+      if (s && s.user && (_event === "SIGNED_IN" || _event === "INITIAL_SESSION")) setTimeout(() => sb.rpc("record_sign_in", { p_agent: navigator.userAgent }).then(() => {}, () => {}), 0);
       const prevId = session && session.user ? session.user.id : null;
       const nextId = s && s.user ? s.user.id : null;
       if (prevId !== nextId) newGeneration();   // pending work belongs to the previous user; park it under their key
       const was = !!session; session = s;
-      if (!!s !== was || prevId !== nextId) handlers.onAuth(Cloud.user());
+      if (!!s !== was || prevId !== nextId) setTimeout(() => handlers.onAuth(Cloud.user()), 0);
     });
     handlers.onAuth(Cloud.user());
     return Cloud.user();
@@ -47,7 +49,7 @@
   // link would open in a different browser than the one you're using).
   Cloud.verifyEmailCode = async function (email, code) {
     const token = String(code || "").replace(/\D/g, "");
-    if (token.length < 6) throw new Error("Enter the 6-digit code from the email.");
+    if (token.length < 6) throw new Error("Enter the whole code from the email.");
     let { data, error } = await sb.auth.verifyOtp({ email, token, type: "email" });
     if (error && /signup|not found|invalid/i.test(error.message)) ({ data, error } = await sb.auth.verifyOtp({ email, token, type: "signup" }));   // first-ever sign-in uses the signup template
     if (error) throw new Error(/expired|invalid/i.test(error.message) ? "That code didn't work. Codes expire after an hour; request a new one if needed." : error.message);

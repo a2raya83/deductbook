@@ -870,13 +870,13 @@
   function accountModal() {
     const user = Cloud.user();
     if (!user) {
-      const close = modal(`<h3>Sign in</h3><p class="small">We'll email you a 6-digit code. No password to remember. Your records then follow you to any device, and you can share a ledger with your household.</p>${planNotice()}
+      const close = modal(`<h3>Sign in</h3><p class="small">We'll email you a one-time code. No password to remember. Your records then follow you to any device, and you can share a ledger with your household.</p>${planNotice()}
         <div id="siStep1">
           <div class="field w12" style="margin-top:10px"><label for="siEmail">Email</label><input id="siEmail" type="email" autocomplete="email" placeholder="you@example.com"></div>
           <div class="actions"><button class="btn primary" id="siGo" type="button">Email me a code</button><button class="btn" data-close type="button">Cancel</button></div>
         </div>
         <div id="siStep2" hidden>
-          <div class="field w12" style="margin-top:10px"><label for="siCode">Code from the email</label><input id="siCode" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="6" placeholder="123456" style="letter-spacing:0.2em;font-size:1.2rem"><span class="hint">Sent to <b id="siSentTo"></b>. The email also has a link that works on this device.</span></div>
+          <div class="field w12" style="margin-top:10px"><label for="siCode">Code from the email</label><input id="siCode" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="10" placeholder="code from the email" style="letter-spacing:0.2em;font-size:1.2rem"><span class="hint">Sent to <b id="siSentTo"></b>. The email also has a link that works on this device.</span></div>
           <div class="actions"><button class="btn primary" id="siVerify" type="button">Sign in</button><button class="btn" id="siBack" type="button">Use a different email</button><button class="btn" data-close type="button">Cancel</button></div>
         </div>
         <p class="small" id="siMsg" aria-live="polite"></p>
@@ -895,7 +895,6 @@
       };
       $("siVerify").addEventListener("click", verify);
       $("siCode").addEventListener("keydown", ev => { if (ev.key === "Enter") verify(); });
-      $("siCode").addEventListener("input", () => { if ($("siCode").value.replace(/\D/g, "").length === 6) verify(); });
       $("siBack").addEventListener("click", () => { $("siStep2").hidden = true; $("siStep1").hidden = false; $("siGo").disabled = false; $("siMsg").textContent = ""; });
       setTimeout(() => $("siEmail").focus(), 50);
       return;

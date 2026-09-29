@@ -32,7 +32,7 @@
     $("adGo").disabled = true;
     try {
       await Cloud.signInWithEmail(email);
-      $("adMsg").innerHTML = 'Check your email for a 6-digit code. <input id="adCode" type="text" inputmode="numeric" maxlength="6" placeholder="123456" style="margin:0 6px;width:7em"> <button class="btn sm primary" id="adVerify" type="button">Sign in</button>';
+      $("adMsg").innerHTML = 'Check your email for the sign-in code. <input id="adCode" type="text" inputmode="numeric" maxlength="10" placeholder="code" style="margin:0 6px;width:7em"> <button class="btn sm primary" id="adVerify" type="button">Sign in</button>';
       $("adVerify").addEventListener("click", async () => { try { await Cloud.verifyEmailCode(email, $("adCode").value); } catch (e) { alert(e.message); } });
     }
     catch (e) { $("adMsg").textContent = e.message; $("adGo").disabled = false; }
