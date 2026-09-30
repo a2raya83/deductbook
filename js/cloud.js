@@ -52,7 +52,7 @@
     if (token.length < 6) throw new Error("Enter the whole code from the email.");
     let { data, error } = await sb.auth.verifyOtp({ email, token, type: "email" });
     if (error && /signup|not found|invalid/i.test(error.message)) ({ data, error } = await sb.auth.verifyOtp({ email, token, type: "signup" }));   // first-ever sign-in uses the signup template
-    if (error) throw new Error(/expired|invalid/i.test(error.message) ? "That code didn't work. Codes expire after an hour; request a new one if needed." : error.message);
+    if (error) throw new Error(/expired|invalid/i.test(error.message) ? "That code didn't work. Codes expire after 15 minutes; request a new one if needed." : error.message);
     return data && data.session ? data.session.user : null;
   };
   Cloud.signOut = async function () {

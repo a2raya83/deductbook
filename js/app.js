@@ -885,7 +885,7 @@
       $("siGo").addEventListener("click", async () => {
         const email = $("siEmail").value.trim(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { $("siMsg").textContent = "Enter a valid email address."; return; }
         $("siGo").disabled = true; $("siMsg").textContent = "Sending…";
-        try { await Cloud.signInWithEmail(email); siEmailSent = email; $("siSentTo").textContent = email; $("siStep1").hidden = true; $("siStep2").hidden = false; $("siMsg").textContent = "Check your email. Codes expire after an hour."; setTimeout(() => $("siCode").focus(), 50); }
+        try { await Cloud.signInWithEmail(email); siEmailSent = email; $("siSentTo").textContent = email; $("siStep1").hidden = true; $("siStep2").hidden = false; $("siMsg").textContent = "Check your email. Codes expire after 15 minutes."; setTimeout(() => $("siCode").focus(), 50); }
         catch (e) { $("siMsg").textContent = e.message; $("siGo").disabled = false; }
       });
       const verify = async () => {

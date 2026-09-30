@@ -107,7 +107,8 @@ accountant. Setup takes about ten minutes:
    `receipts` storage bucket, and the helper functions.
 2. In **Authentication → URL Configuration**, set the Site URL to where the app is hosted (for
    example `https://deductbook.com/`) and add it and `https://www.deductbook.com/**` to the redirect allow list.
-   Sign-in is by email: the message carries a 6-digit code (typed into the app, `verifyOtp`) and a link.
+   Sign-in is by email: the message carries a one-time code (8 digits on this project, typed into the app via
+   `verifyOtp`) and a link; both expire after 15 minutes (Email OTP Expiration = 900) and work once.
    The Magic Link and Confirm signup templates must include `{{ .Token }}` for the code to appear; the
    production project's templates do.
 3. **Email delivery (required for public sign-in).** Supabase's built-in email sender only delivers
