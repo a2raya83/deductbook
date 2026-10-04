@@ -3,15 +3,45 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>DeductBook</title>
-<meta name="description" content="Charitable donations, organized for tax time. Keep donations, item values and receipts in one place, see what needs attention, and prepare a clear summary for your return.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23176b60' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 4.5A1.5 1.5 0 0 1 6.5 3H19v16H6.5A1.5 1.5 0 0 0 5 20.5z'/%3E%3Cpath d='M5 20.5V4.5'/%3E%3Cpath d='M14 3v8l-2.2-1.5L9.6 11V3'/%3E%3C/svg%3E">
+<title>DeductBook: Charitable Donation Tracker for Tax Time</title>
+<meta name="description" content="Track charitable donations, value donated goods, and keep receipts ready for tax time. A free ItsDeductible replacement with the IRS rules built in.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="favicon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#176b60">
+<link rel="canonical" href="https://deductbook.com/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="DeductBook">
+<meta property="og:title" content="DeductBook: Charitable Donation Tracker for Tax Time">
+<meta property="og:description" content="Track charitable donations, value donated goods, and keep receipts ready for tax time. A free ItsDeductible replacement with the IRS rules built in.">
+<meta property="og:url" content="https://deductbook.com/">
+<meta property="og:image" content="https://deductbook.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="DeductBook: Charitable Donation Tracker for Tax Time">
+<meta name="twitter:description" content="Track charitable donations, value donated goods, and keep receipts ready for tax time. A free ItsDeductible replacement with the IRS rules built in.">
+<meta name="twitter:image" content="https://deductbook.com/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap">
 <link rel="stylesheet" href="css/app.css">
 <link rel="stylesheet" href="css/landing.css">
 <script src="js/config.js"></script>
 <script src="js/config.local.js"></script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+ {"@type":"Organization","@id":"https://deductbook.com/#org","name":"DeductBook","url":"https://deductbook.com/","logo":"https://deductbook.com/favicon-512.png","email":"support@deductbook.com"},
+ {"@type":"WebSite","@id":"https://deductbook.com/#site","url":"https://deductbook.com/","name":"DeductBook","publisher":{"@id":"https://deductbook.com/#org"}},
+ {"@type":"SoftwareApplication","name":"DeductBook","applicationCategory":"FinanceApplication","operatingSystem":"Web browser","url":"https://deductbook.com/app.html","description":"Charitable donation tracker: cash gifts, donated goods with a sourced value guide, stock, volunteer mileage and expenses, receipts, and a tax summary, with every entry checked against the IRS record-keeping rules.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD","description":"Free in your browser. Household accounts free during the beta; planned price $19 per year per household."},"publisher":{"@id":"https://deductbook.com/#org"}},
+ {"@type":"FAQPage","mainEntity":[
+  {"@type":"Question","name":"Is DeductBook tax advice?","acceptedAnswer":{"@type":"Answer","text":"No. DeductBook organizes your records and explains the IRS rules in plain English, citing Publication 526 and 561. Confirm deductions with a qualified preparer."}},
+  {"@type":"Question","name":"Where is my data stored?","acceptedAnswer":{"@type":"Answer","text":"Without an account, only in your browser; nothing is uploaded. With a household account, in private storage shared only with the people you invite."}},
+  {"@type":"Question","name":"Can I import from ItsDeductible?","acceptedAnswer":{"@type":"Answer","text":"Yes. Request your data export from your Intuit account, then use Backup & data, Import spreadsheet, with the ItsDeductibleOnline.xlsx file. Dates, charities, items, values, cash, mileage and stock come across."}},
+  {"@type":"Question","name":"What does the household plan cost?","acceptedAnswer":{"@type":"Answer","text":"Nothing during the beta. The planned price afterwards is $19 a year per household, covering everyone you invite."}}
+ ]}
+]}
+</script>
 </head>
 <body>
 
@@ -35,6 +65,7 @@
 <main class="land">
   <section class="hero">
     <div>
+      <p class="eyebrow">Charitable donation tracker · ItsDeductible replacement</p>
       <h1 class="serif">Track your giving. <span>Simplify tax time.</span></h1>
       <p class="lede">Keep charitable donations and receipts together, ready for tax time.</p>
       <div class="cta">
@@ -175,7 +206,7 @@
       <ul>
         <li>Start with this year's gifts; the value guide covers the same kinds of items.</li>
         <li>Your data is yours: export a full backup or a CSV at any time.</li>
-        <li>Import your ItsDeductible export or any spreadsheet from <b>Backup &amp; data</b>; <a href="help.html#itsdeductible">how to get the export</a>.</li>
+        <li>Import your ItsDeductible export or any spreadsheet from <b>Backup &amp; data</b>. <a href="itsdeductible-alternative.html">Moving from ItsDeductible, step by step</a>.</li>
       </ul>
     </div>
   </section>
@@ -227,7 +258,7 @@
 <footer class="land-footer">
   <div class="inner">
     <span>© 2026 Nineveh Ventures · DeductBook</span>
-    <span><a href="app.html">Open DeductBook</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="support.html">Support</a><a href="app.html#rules">IRS rules</a></span>
+    <span><a href="app.html">Open DeductBook</a><a href="itsdeductible-alternative.html">From ItsDeductible</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="support.html">Support</a><a href="app.html#rules">IRS rules</a></span>
   </div>
 </footer>
 <script>
