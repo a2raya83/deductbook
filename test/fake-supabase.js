@@ -61,6 +61,7 @@
         signInWithOtp: async () => ({ error: null })
       },
       from: builder,
+      functions: { invoke: async () => ({ data: null, error: { message: "email sending not modelled in the fake client" } }) },
       rpc: async (fn, args) => {
         if (fn === "create_household") { const id = "hh-" + Math.random().toString(36).slice(2, 8); F.seedHousehold(id, args.p_name, [[F.session.user.id, "owner"]]); return { data: id, error: null }; }
         if (fn === "household_member_list") return { data: [...tables.household_members.values()].filter(m => m.household_id === args.p_household).map(m => ({ user_id: m.user_id, email: m.user_id + "@example.test", role: m.role, joined_at: m.joined_at })), error: null };

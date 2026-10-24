@@ -84,12 +84,23 @@
     return data || [];
   };
   Cloud.invite = async function (email, role) {
-    const { data, error } = await sb.from("invitations").insert({ household_id: Cloud.currentHousehold.id, email: email.trim().toLowerCase(), role }).select("token").single();
+    const { data, error } = await sb.from("invitations").insert({ household_id: Cloud.currentHousehold.id, email: email.trim().toLowerCase(), role }).select("id, token").single();
     if (error) throw new Error(error.message);
-    return { token: data.token, link: location.origin + location.pathname + "#invite=" + data.token };
+    return { id: data.id, token: data.token, link: location.origin + location.pathname + "#invite=" + data.token };
+  };
+  // Email the invitation (server side, through the send-invite function). Resolves to the address it went to.
+  Cloud.sendInvite = async function (invitationId) {
+    const { data, error } = await sb.functions.invoke("send-invite", { body: { invitation_id: invitationId, app_url: location.origin + location.pathname } });
+    if (error) {
+      let msg = error.message || "The email couldn't be sent.";
+      try { const ctx = error.context && typeof error.context.json === "function" ? await error.context.json() : null; if (ctx && ctx.error) msg = ctx.error; } catch (e) { /* keep msg */ }
+      throw new Error(msg);
+    }
+    if (data && data.error) throw new Error(data.error);
+    return data && data.to;
   };
   Cloud.invitations = async function () {
-    const { data, error } = await sb.from("invitations").select("id, email, role, token, created_at, accepted_at").eq("household_id", Cloud.currentHousehold.id).is("accepted_at", null).order("created_at");
+    const { data, error } = await sb.from("invitations").select("id, email, role, token, created_at, accepted_at, sent_at").eq("household_id", Cloud.currentHousehold.id).is("accepted_at", null).order("created_at");
     if (error) throw new Error(error.message);
     return data || [];
   };

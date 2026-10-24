@@ -46,6 +46,8 @@ create table if not exists public.invitations (
   accepted_at  timestamptz,
   accepted_by  uuid references auth.users(id)
 );
+-- When the invitation email was last sent (by the send-invite Edge Function, which emails through Resend).
+alter table public.invitations add column if not exists sent_at timestamptz;
 
 -- One row per donation. The body is the same JSON the browser version stores, so the rules engine
 -- and forms are unchanged. version is bumped on every write; a stale write is rejected (conflict).

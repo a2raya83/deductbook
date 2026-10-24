@@ -917,19 +917,27 @@
       try { members = await Cloud.members(); if (hh.role === "owner") invites = await Cloud.invitations(); } catch (e) { $("acctBody").innerHTML = `<p class="small">${esc(e.message)}</p>`; return; }
       $("acctBody").innerHTML = `<h4>People with access</h4>
         <div class="checklist" style="margin-top:8px">${members.map(m => `<div class="item"><span class="mk done">✓</span><span>${esc(m.email)} <span class="muted small">${m.role}</span>${hh.role === "owner" && m.user_id !== user.id ? ` <button class="btn sm link" type="button" data-rm="${esc(m.user_id)}">Remove</button>` : ""}</span></div>`).join("")}</div>
-        ${hh.role === "owner" ? `<h4 style="margin-top:14px">Invite someone</h4><p class="small muted">They'll sign in with the email you enter here and open the link you copy.</p>
+        ${hh.role === "owner" ? `<h4 style="margin-top:14px">Invite someone</h4><p class="small muted">We email them an invitation. They sign in with that address and the ledger opens for them.</p>
           <div class="form-grid" style="margin-top:8px"><div class="field w8"><label for="invEmail">Email</label><input id="invEmail" type="email" placeholder="spouse@example.com"></div><div class="field w4"><label for="invRole">Access</label><select id="invRole"><option value="member">Can add and edit</option><option value="viewer">Read-only (accountant)</option></select></div></div>
-          <div class="actions" style="margin-top:8px"><button class="btn sm primary" id="invGo" type="button">Create invitation link</button></div><p class="small" id="invMsg"></p>
-          ${invites.length ? `<h4 style="margin-top:12px">Pending invitations</h4><div class="checklist" style="margin-top:6px">${invites.map(i => `<div class="item"><span class="mk need">!</span><span>${esc(i.email)} <span class="muted small">${i.role}</span> <button class="btn sm link" type="button" data-copy="${esc(i.token)}">Copy link</button> <button class="btn sm link" type="button" data-revoke="${esc(i.id)}">Revoke</button></span></div>`).join("")}</div>` : ""}` : ""}
+          <div class="actions" style="margin-top:8px"><button class="btn sm primary" id="invGo" type="button">Send invitation</button></div><p class="small" id="invMsg"></p>
+          ${invites.length ? `<h4 style="margin-top:12px">Pending invitations</h4><div class="checklist" style="margin-top:6px">${invites.map(i => `<div class="item"><span class="mk ${i.sent_at ? "na" : "need"}">${i.sent_at ? "✉" : "!"}</span><span>${esc(i.email)} <span class="muted small">${i.role}${i.sent_at ? " · emailed " + fmtDate(i.sent_at.slice(0, 10)) : " · not emailed yet"}</span> <button class="btn sm link" type="button" data-resend="${esc(i.id)}">${i.sent_at ? "Resend email" : "Send email"}</button> <button class="btn sm link" type="button" data-copy="${esc(i.token)}">Copy link</button> <button class="btn sm link" type="button" data-revoke="${esc(i.id)}">Revoke</button></span></div>`).join("")}</div>` : ""}` : ""}
         <div class="actions" style="margin-top:14px"><button class="btn sm" id="hhRename" type="button">Rename household</button></div>`;
       const linkFor = t => location.origin + location.pathname + "#invite=" + t;
       $("acctBody").querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click", async () => toast((await copyText(linkFor(b.dataset.copy))) ? "Invitation link copied" : linkFor(b.dataset.copy), true)));
       $("acctBody").querySelectorAll("[data-revoke]").forEach(b => b.addEventListener("click", async () => { try { await Cloud.revokeInvite(b.dataset.revoke); close(); accountModal(); } catch (e) { toast(e.message, true); } }));
+      $("acctBody").querySelectorAll("[data-resend]").forEach(b => b.addEventListener("click", async () => { b.disabled = true; try { const to = await Cloud.sendInvite(b.dataset.resend); toast("Invitation emailed to " + to); close(); accountModal(); } catch (e) { toast(e.message, true); b.disabled = false; } }));
       $("acctBody").querySelectorAll("[data-rm]").forEach(b => b.addEventListener("click", async () => { if (!b.dataset.confirm) { b.dataset.confirm = "1"; b.textContent = "Confirm remove"; return; } try { await Cloud.removeMember(b.dataset.rm); close(); accountModal(); } catch (e) { toast(e.message, true); } }));
       const inv = $("invGo"); if (inv) inv.addEventListener("click", async () => {
         const email = $("invEmail").value.trim(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { $("invMsg").textContent = "Enter a valid email address."; return; }
-        try { const r = await Cloud.invite(email, $("invRole").value); const ok = await copyText(r.link); $("invMsg").innerHTML = `Invitation created${ok ? " and link copied" : ""}. Send them this link: <code>${esc(r.link)}</code>`; }
+        inv.disabled = true; $("invMsg").textContent = "Sending…";
+        try {
+          const r = await Cloud.invite(email, $("invRole").value);
+          try { const to = await Cloud.sendInvite(r.id); $("invMsg").textContent = `Invitation emailed to ${to}. They sign in with that address and the ledger opens for them.`; }
+          catch (e) { const ok = await copyText(r.link); $("invMsg").innerHTML = `The invitation was created but the email didn't go out (${esc(e.message)}). ${ok ? "The link is copied; send it to them yourself." : `Send them this link: <code>${esc(r.link)}</code>`}`; }
+          $("invEmail").value = "";
+        }
         catch (e) { $("invMsg").textContent = e.message; }
+        finally { inv.disabled = false; }
       });
       const rn = $("hhRename"); if (rn) rn.addEventListener("click", async () => {
         const name = window.prompt ? null : null; // prompt() is unavailable in some hosts; use an inline field
